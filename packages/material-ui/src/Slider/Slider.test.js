@@ -2,15 +2,8 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import { spy, stub } from 'sinon';
 import { expect } from 'chai';
-import {
-  createMount,
-  describeConformanceV5,
-  act,
-  createClientRender,
-  fireEvent,
-  screen,
-} from 'test/utils';
-import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import { describeConformanceV5, act, createClientRender, fireEvent, screen } from 'test/utils';
+import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { SliderUnstyled } from '@material-ui/unstyled';
 import Slider, { sliderClasses as classes } from '@material-ui/core/Slider';
 
@@ -35,17 +28,15 @@ describe('<Slider />', () => {
   });
 
   const render = createClientRender();
-  const mount = createMount();
 
   describeConformanceV5(<Slider value={0} />, () => ({
     classes,
     inheritComponent: SliderUnstyled,
     render,
-    mount,
     refInstanceof: window.HTMLSpanElement,
     muiName: 'MuiSlider',
     testDeepOverrides: { slotName: 'thumb', slotClassName: classes.thumb },
-    testVariantProps: { color: 'primary', orientation: 'vertical' },
+    testVariantProps: { color: 'primary', orientation: 'vertical', size: 'small' },
     testStateOverrides: { prop: 'color', value: 'secondary', styleKey: 'colorSecondary' },
   }));
 
@@ -76,7 +67,9 @@ describe('<Slider />', () => {
     expect(handleChangeCommitted.callCount).to.equal(1);
     expect(handleChangeCommitted.args[0][1]).to.equal(10);
 
-    slider.focus();
+    act(() => {
+      slider.focus();
+    });
     fireEvent.change(slider, { target: { value: 23 } });
     expect(handleChange.callCount).to.equal(2);
     expect(handleChangeCommitted.callCount).to.equal(2);
@@ -181,8 +174,8 @@ describe('<Slider />', () => {
 
       act(() => {
         slider1.focus();
-        fireEvent.change(slider1, { target: { value: '21' } });
       });
+      fireEvent.change(slider1, { target: { value: '21' } });
 
       expect(slider1.getAttribute('aria-valuenow')).to.equal('21');
       expect(slider2.getAttribute('aria-valuenow')).to.equal('30');
@@ -197,8 +190,8 @@ describe('<Slider />', () => {
 
       act(() => {
         slider1.focus();
-        fireEvent.change(slider1, { target: { value: '31' } });
       });
+      fireEvent.change(slider1, { target: { value: '31' } });
 
       expect(slider1.getAttribute('aria-valuenow')).to.equal('31');
       expect(slider2.getAttribute('aria-valuenow')).to.equal('31');
@@ -206,8 +199,8 @@ describe('<Slider />', () => {
 
       act(() => {
         slider1.focus();
-        fireEvent.change(slider1, { target: { value: '32' } });
       });
+      fireEvent.change(slider1, { target: { value: '32' } });
 
       expect(slider1.getAttribute('aria-valuenow')).to.equal('31');
       expect(slider2.getAttribute('aria-valuenow')).to.equal('32');
@@ -536,6 +529,31 @@ describe('<Slider />', () => {
       expect(thumb).not.toHaveFocus();
       expect(thumb).not.to.have.class(classes.focusVisible);
     });
+
+    it('should be customizable in the theme', () => {
+      const theme = createTheme({
+        components: {
+          MuiSlider: {
+            styleOverrides: {
+              root: {
+                [`&.${classes.disabled}`]: {
+                  mixBlendMode: 'darken',
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { container } = render(
+        <ThemeProvider theme={theme}>
+          <Slider disabled value={0} />
+        </ThemeProvider>,
+      );
+      expect(container.firstChild).to.toHaveComputedStyle({
+        mixBlendMode: 'darken',
+      });
+    });
   });
 
   describe('prop: track', () => {
@@ -793,7 +811,7 @@ describe('<Slider />', () => {
     it('should add direction css', () => {
       const { getByRole } = render(
         <ThemeProvider
-          theme={createMuiTheme({
+          theme={createTheme({
             direction: 'rtl',
           })}
         >
@@ -812,7 +830,7 @@ describe('<Slider />', () => {
       const handleChange = spy();
       const { container, getByTestId } = render(
         <ThemeProvider
-          theme={createMuiTheme({
+          theme={createTheme({
             direction: 'rtl',
           })}
         >
@@ -943,11 +961,11 @@ describe('<Slider />', () => {
 
     act(() => {
       slider.focus();
-      fireEvent.change(slider, {
-        target: {
-          value: 4,
-        },
-      });
+    });
+    fireEvent.change(slider, {
+      target: {
+        value: 4,
+      },
     });
 
     expect(handleChange.callCount).to.equal(1);
@@ -981,8 +999,8 @@ describe('<Slider />', () => {
 
   it('should not override the event.target on touch events', () => {
     const handleChange = spy();
-    const handleNativeEvent = spy((event) => event.target);
-    const handleEvent = spy((event) => event.target);
+    const handleNativeEvent = spy();
+    const handleEvent = spy();
     function Test() {
       React.useEffect(() => {
         document.addEventListener('touchstart', handleNativeEvent);
@@ -1003,14 +1021,16 @@ describe('<Slider />', () => {
     fireEvent.touchStart(slider, createTouches([{ identifier: 1 }]));
 
     expect(handleChange.callCount).to.equal(1);
-    expect(handleNativeEvent.returnValues).to.have.members([slider]);
-    expect(handleEvent.returnValues).to.have.members([slider]);
+    expect(handleNativeEvent.callCount).to.equal(1);
+    expect(handleNativeEvent.firstCall.args[0]).to.have.property('target', slider);
+    expect(handleEvent.callCount).to.equal(1);
+    expect(handleEvent.firstCall.args[0]).to.have.property('target', slider);
   });
 
   it('should not override the event.target on mouse events', () => {
     const handleChange = spy();
-    const handleNativeEvent = spy((event) => event.target);
-    const handleEvent = spy((event) => event.target);
+    const handleNativeEvent = spy();
+    const handleEvent = spy();
     function Test() {
       React.useEffect(() => {
         document.addEventListener('mousedown', handleNativeEvent);
@@ -1031,8 +1051,10 @@ describe('<Slider />', () => {
     fireEvent.mouseDown(slider);
 
     expect(handleChange.callCount).to.equal(1);
-    expect(handleNativeEvent.returnValues).to.have.members([slider]);
-    expect(handleEvent.returnValues).to.have.members([slider]);
+    expect(handleNativeEvent.callCount).to.equal(1);
+    expect(handleNativeEvent.firstCall.args[0]).to.have.property('target', slider);
+    expect(handleEvent.callCount).to.equal(1);
+    expect(handleEvent.firstCall.args[0]).to.have.property('target', slider);
   });
 
   describe('dragging state', () => {
@@ -1091,6 +1113,74 @@ describe('<Slider />', () => {
       expect(container.firstChild).to.have.class(classes.dragging);
       fireEvent.touchEnd(document.body, createTouches([{ identifier: 1 }]));
       expect(container.firstChild).not.to.have.class(classes.dragging);
+    });
+  });
+
+  it('should remove the slider from the tab sequence', () => {
+    render(<SliderUnstyled tabIndex={-1} value={30} />);
+    expect(screen.getByRole('slider')).to.have.property('tabIndex', -1);
+  });
+
+  describe('prop: disableSwap', () => {
+    it('should bound the value when using the keyboard', () => {
+      const handleChange = spy();
+      const { getAllByRole } = render(
+        <Slider defaultValue={[20, 30]} disableSwap onChange={handleChange} />,
+      );
+      const [slider1, slider2] = getAllByRole('slider');
+
+      act(() => {
+        slider1.focus();
+      });
+      fireEvent.change(slider2, { target: { value: '19' } });
+      expect(handleChange.args[0][1]).to.deep.equal([20, 20]);
+      expect(document.activeElement).to.have.attribute('data-index', '1');
+    });
+
+    it('should bound the value when using the mouse', () => {
+      const handleChange = spy();
+      const { container } = render(
+        <Slider defaultValue={[20, 30]} disableSwap onChange={handleChange} />,
+      );
+
+      stub(container.firstChild, 'getBoundingClientRect').callsFake(() => ({
+        width: 100,
+        height: 10,
+        bottom: 10,
+        left: 0,
+      }));
+
+      fireEvent.touchStart(
+        container.firstChild,
+        createTouches([{ identifier: 1, clientX: 35, clientY: 0 }]),
+      );
+      fireEvent.touchMove(
+        document.body,
+        createTouches([{ identifier: 1, clientX: 19, clientY: 0 }]),
+      );
+      expect(handleChange.args[0][1]).to.deep.equal([20, 35]);
+      expect(handleChange.args[1][1]).to.deep.equal([20, 20]);
+      expect(document.activeElement).to.have.attribute('data-index', '1');
+    });
+  });
+
+  describe('prop: size', () => {
+    it('should render default slider', () => {
+      render(<Slider />);
+
+      const root = document.querySelector(`.${classes.root}`);
+      const thumb = document.querySelector(`.${classes.thumb}`);
+      expect(root).not.to.have.class(classes.sizeSmall);
+      expect(thumb).not.to.have.class(classes.thumbSizeSmall);
+    });
+
+    it('should render small slider', () => {
+      render(<Slider size="small" />);
+
+      const root = document.querySelector(`.${classes.root}`);
+      const thumb = document.querySelector(`.${classes.thumb}`);
+      expect(root).to.have.class(classes.sizeSmall);
+      expect(thumb).to.have.class(classes.thumbSizeSmall);
     });
   });
 });

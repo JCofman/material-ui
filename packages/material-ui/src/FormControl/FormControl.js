@@ -1,41 +1,35 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
 import useThemeProps from '../styles/useThemeProps';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import { isFilled, isAdornedStart } from '../InputBase/utils';
 import capitalize from '../utils/capitalize';
 import isMuiElement from '../utils/isMuiElement';
 import FormControlContext from './FormControlContext';
 import { getFormControlUtilityClasses } from './formControlClasses';
 
-const overridesResolver = ({ styleProps }, styles) => {
-  return deepmerge(styles.root || {}, {
-    ...styles[`margin${capitalize(styleProps.margin)}`],
-    ...(styleProps.fullWidth && styles.fullWidth),
-  });
-};
-
 const useUtilityClasses = (styleProps) => {
   const { classes, margin, fullWidth } = styleProps;
   const slots = {
-    root: ['root', `margin${capitalize(margin)}`, fullWidth && 'fullWidth'],
+    root: ['root', margin !== 'none' && `margin${capitalize(margin)}`, fullWidth && 'fullWidth'],
   };
 
   return composeClasses(slots, getFormControlUtilityClasses, classes);
 };
 
-const FormControlRoot = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiFormControl',
-    slot: 'Root',
-    overridesResolver,
+const FormControlRoot = styled('div', {
+  name: 'MuiFormControl',
+  slot: 'Root',
+  overridesResolver: ({ styleProps }, styles) => {
+    return {
+      ...styles.root,
+      ...styles[`margin${capitalize(styleProps.margin)}`],
+      ...(styleProps.fullWidth && styles.fullWidth),
+    };
   },
-)(({ styleProps }) => ({
+})(({ styleProps }) => ({
   display: 'inline-flex',
   flexDirection: 'column',
   position: 'relative',
@@ -97,7 +91,7 @@ const FormControl = React.forwardRef(function FormControl(inProps, ref) {
     margin = 'none',
     required = false,
     size = 'medium',
-    variant = 'standard',
+    variant = 'outlined',
     ...other
   } = props;
 
@@ -233,7 +227,7 @@ const FormControl = React.forwardRef(function FormControl(inProps, ref) {
   );
 });
 
-FormControl.propTypes = {
+FormControl.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -255,7 +249,7 @@ FormControl.propTypes = {
    * @default 'primary'
    */
   color: PropTypes /* @typescript-to-proptypes-ignore */.oneOfType([
-    PropTypes.oneOf(['primary', 'secondary']),
+    PropTypes.oneOf(['primary', 'secondary', 'error', 'info', 'success', 'warning']),
     PropTypes.string,
   ]),
   /**
@@ -313,7 +307,7 @@ FormControl.propTypes = {
   sx: PropTypes.object,
   /**
    * The variant to use.
-   * @default 'standard'
+   * @default 'outlined'
    */
   variant: PropTypes.oneOf(['filled', 'outlined', 'standard']),
 };

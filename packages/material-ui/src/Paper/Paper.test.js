@@ -1,20 +1,17 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import * as PropTypes from 'prop-types';
-import { createClientRender, createMount, describeConformanceV5 } from 'test/utils';
-import Paper from './Paper';
-import classes from './paperClasses';
-import { createMuiTheme, ThemeProvider } from '../styles';
+import PropTypes from 'prop-types';
+import { createClientRender, describeConformanceV5 } from 'test/utils';
+import Paper, { paperClasses as classes } from '@material-ui/core/Paper';
+import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 
 describe('<Paper />', () => {
   const render = createClientRender();
-  const mount = createMount();
 
   describeConformanceV5(<Paper />, () => ({
     classes,
     inheritComponent: 'div',
     render,
-    mount,
     muiName: 'MuiPaper',
     refInstanceof: window.HTMLDivElement,
     testComponentPropWith: 'header',
@@ -73,7 +70,7 @@ describe('<Paper />', () => {
   });
 
   it('allows custom elevations via theme.shadows', () => {
-    const theme = createMuiTheme();
+    const theme = createTheme();
     theme.shadows.push('20px 20px');
     const { getByTestId } = render(
       <ThemeProvider theme={theme}>

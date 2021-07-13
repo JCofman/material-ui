@@ -1,50 +1,15 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
-import experimentalStyled from '../styles/experimentalStyled';
+import { alpha } from '@material-ui/system';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
-import { alpha } from '../styles/colorManipulator';
-import dividerClasses, { getDividerUtilityClass } from './dividerClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...(styleProps.absolute && styles.absolute),
-    ...styles[styleProps.variant],
-    ...(styleProps.light && styles.light),
-    ...(styleProps.orientation === 'vertical' && styles.vertical),
-    ...(styleProps.flexItem && styles.flexItem),
-    ...(styleProps.children && styles.withChildren),
-    ...(styleProps.children &&
-      styleProps.orientation === 'vertical' &&
-      styles.withChildrenVertical),
-    ...(styleProps.textAlign === 'right' &&
-      styleProps.orientation !== 'vertical' &&
-      styles.textAlignRight),
-    ...(styleProps.textAlign === 'left' &&
-      styleProps.orientation !== 'vertical' &&
-      styles.textAlignLeft),
-    [`& .${dividerClasses.wrapper}`]: {
-      ...styles.wrapper,
-      ...(styleProps.orientation === 'vertical' && styles.wrapperVertical),
-    },
-  });
-};
+import { getDividerUtilityClass } from './dividerClasses';
 
 const useUtilityClasses = (styleProps) => {
-  const {
-    absolute,
-    children,
-    classes,
-    flexItem,
-    light,
-    orientation,
-    textAlign,
-    variant,
-  } = styleProps;
+  const { absolute, children, classes, flexItem, light, orientation, textAlign, variant } =
+    styleProps;
 
   const slots = {
     root: [
@@ -65,15 +30,30 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getDividerUtilityClass, classes);
 };
 
-const DividerRoot = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiDivider',
-    slot: 'Root',
-    overridesResolver,
+const DividerRoot = styled('div', {
+  name: 'MuiDivider',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [
+      styles.root,
+      styleProps.absolute && styles.absolute,
+      styles[styleProps.variant],
+      styleProps.light && styles.light,
+      styleProps.orientation === 'vertical' && styles.vertical,
+      styleProps.flexItem && styles.flexItem,
+      styleProps.children && styles.withChildren,
+      styleProps.children && styleProps.orientation === 'vertical' && styles.withChildrenVertical,
+      styleProps.textAlign === 'right' &&
+        styleProps.orientation !== 'vertical' &&
+        styles.textAlignRight,
+      styleProps.textAlign === 'left' &&
+        styleProps.orientation !== 'vertical' &&
+        styles.textAlignLeft,
+    ];
   },
-)(
+})(
   ({ theme, styleProps }) => ({
     /* Styles applied to the root element. */
     margin: 0, // Reset browser default style.
@@ -97,11 +77,18 @@ const DividerRoot = experimentalStyled(
     ...(styleProps.variant === 'inset' && {
       marginLeft: 72,
     }),
-    /* Styles applied to the root element if `variant="middle"`. */
-    ...(styleProps.variant === 'middle' && {
-      marginLeft: theme.spacing(2),
-      marginRight: theme.spacing(2),
-    }),
+    /* Styles applied to the root element if `variant="middle"` and `orientation="horizontal"`. */
+    ...(styleProps.variant === 'middle' &&
+      styleProps.orientation === 'horizontal' && {
+        marginLeft: theme.spacing(2),
+        marginRight: theme.spacing(2),
+      }),
+    /* Styles applied to the root element if `variant="middle"` and `orientation="vertical"`. */
+    ...(styleProps.variant === 'middle' &&
+      styleProps.orientation === 'vertical' && {
+        marginTop: theme.spacing(1),
+        marginBottom: theme.spacing(1),
+      }),
     /* Styles applied to the root element if `orientation="vertical"`. */
     ...(styleProps.orientation === 'vertical' && {
       height: '100%',
@@ -170,14 +157,15 @@ const DividerRoot = experimentalStyled(
   }),
 );
 
-const DividerWrapper = experimentalStyled(
-  'span',
-  {},
-  {
-    name: 'MuiDivider',
-    slot: 'Wrapper',
+const DividerWrapper = styled('span', {
+  name: 'MuiDivider',
+  slot: 'Wrapper',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [styles.wrapper, styleProps.orientation === 'vertical' && styles.wrapperVertical];
   },
-)(({ theme, styleProps }) => ({
+})(({ theme, styleProps }) => ({
   display: 'inline-block',
   paddingLeft: theme.spacing(1.2),
   paddingRight: theme.spacing(1.2),
@@ -235,7 +223,7 @@ const Divider = React.forwardRef(function Divider(inProps, ref) {
   );
 });
 
-Divider.propTypes = {
+Divider.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -281,7 +269,7 @@ Divider.propTypes = {
   /**
    * @ignore
    */
-  role: PropTypes.string,
+  role: PropTypes /* @typescript-to-proptypes-ignore */.string,
   /**
    * The system prop that allows defining system overrides as well as additional CSS styles.
    */

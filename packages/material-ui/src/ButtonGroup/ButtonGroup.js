@@ -2,42 +2,41 @@ import * as React from 'react';
 import { isFragment } from 'react-is';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
+import { alpha } from '@material-ui/system';
 import capitalize from '../utils/capitalize';
-import { alpha } from '../styles/colorManipulator';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
 import buttonGroupClasses, { getButtonGroupUtilityClass } from './buttonGroupClasses';
 
 const overridesResolver = (props, styles) => {
   const { styleProps } = props;
 
-  return deepmerge(styles.root || {}, {
-    ...styles[styleProps.variant],
-    ...(styleProps.disableElevation === true && styles.disableElevation),
-    ...(styleProps.fullWidth && styles.fullWidth),
-    ...(styleProps.orientation === 'vertical' && styles.vertical),
-    [`& .${buttonGroupClasses.grouped}`]: {
-      ...styles.grouped,
-      ...styles[`grouped${capitalize(styleProps.orientation)}`],
-      ...styles[`grouped${capitalize(styleProps.variant)}`],
-      ...styles[`grouped${capitalize(styleProps.variant)}${capitalize(styleProps.orientation)}`],
-      ...styles[`grouped${capitalize(styleProps.variant)}${capitalize(styleProps.color)}`],
+  return [
+    { [`& .${buttonGroupClasses.grouped}`]: styles.grouped },
+    {
+      [`& .${buttonGroupClasses.grouped}`]: styles[`grouped${capitalize(styleProps.orientation)}`],
     },
-  });
+    { [`& .${buttonGroupClasses.grouped}`]: styles[`grouped${capitalize(styleProps.variant)}`] },
+    {
+      [`& .${buttonGroupClasses.grouped}`]:
+        styles[`grouped${capitalize(styleProps.variant)}${capitalize(styleProps.orientation)}`],
+    },
+    {
+      [`& .${buttonGroupClasses.grouped}`]:
+        styles[`grouped${capitalize(styleProps.variant)}${capitalize(styleProps.color)}`],
+    },
+    styles.root,
+    styles[styleProps.variant],
+    styleProps.disableElevation === true && styles.disableElevation,
+    styleProps.fullWidth && styles.fullWidth,
+    styleProps.orientation === 'vertical' && styles.vertical,
+  ];
 };
 
 const useUtilityClasses = (styleProps) => {
-  const {
-    classes,
-    color,
-    disabled,
-    disableElevation,
-    fullWidth,
-    orientation,
-    variant,
-  } = styleProps;
+  const { classes, color, disabled, disableElevation, fullWidth, orientation, variant } =
+    styleProps;
 
   const slots = {
     root: [
@@ -52,7 +51,7 @@ const useUtilityClasses = (styleProps) => {
       `grouped${capitalize(orientation)}`,
       `grouped${capitalize(variant)}`,
       `grouped${capitalize(variant)}${capitalize(orientation)}`,
-      color !== 'default' && `grouped${capitalize(variant)}${capitalize(color)}`,
+      `grouped${capitalize(variant)}${capitalize(color)}`,
       disabled && 'disabled',
     ],
   };
@@ -60,15 +59,11 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getButtonGroupUtilityClass, classes);
 };
 
-const ButtonGroupRoot = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiButtonGroup',
-    slot: 'Root',
-    overridesResolver,
-  },
-)(({ theme, styleProps }) => ({
+const ButtonGroupRoot = styled('div', {
+  name: 'MuiButtonGroup',
+  slot: 'Root',
+  overridesResolver,
+})(({ theme, styleProps }) => ({
   display: 'inline-flex',
   borderRadius: theme.shape.borderRadius,
   ...(styleProps.variant === 'contained' && {
@@ -125,12 +120,8 @@ const ButtonGroupRoot = experimentalStyled(
           }`,
         }),
       ...(styleProps.variant === 'text' &&
-        styleProps.color === 'primary' && {
-          borderColor: alpha(theme.palette.primary.main, 0.5),
-        }),
-      ...(styleProps.variant === 'text' &&
-        styleProps.color === 'secondary' && {
-          borderColor: alpha(theme.palette.secondary.main, 0.5),
+        styleProps.color !== 'inherit' && {
+          borderColor: alpha(theme.palette[styleProps.color].main, 0.5),
         }),
       ...(styleProps.variant === 'outlined' &&
         styleProps.orientation === 'horizontal' && {
@@ -143,34 +134,26 @@ const ButtonGroupRoot = experimentalStyled(
       ...(styleProps.variant === 'contained' &&
         styleProps.orientation === 'horizontal' && {
           borderRight: `1px solid ${theme.palette.grey[400]}`,
-          '&.Mui-disabled': {
+          [`&.${buttonGroupClasses.disabled}`]: {
             borderRight: `1px solid ${theme.palette.action.disabled}`,
           },
         }),
       ...(styleProps.variant === 'contained' &&
         styleProps.orientation === 'vertical' && {
           borderBottom: `1px solid ${theme.palette.grey[400]}`,
-          '&.Mui-disabled': {
+          [`&.${buttonGroupClasses.disabled}`]: {
             borderBottom: `1px solid ${theme.palette.action.disabled}`,
           },
         }),
       ...(styleProps.variant === 'contained' &&
-        styleProps.color === 'primary' && {
-          borderColor: theme.palette.primary.dark,
-        }),
-      ...(styleProps.variant === 'contained' &&
-        styleProps.color === 'secondary' && {
-          borderColor: theme.palette.secondary.dark,
+        styleProps.color !== 'inherit' && {
+          borderColor: theme.palette[styleProps.color].dark,
         }),
     },
     '&:hover': {
       ...(styleProps.variant === 'outlined' &&
-        styleProps.color === 'primary' && {
-          borderColor: theme.palette.primary.main,
-        }),
-      ...(styleProps.variant === 'outlined' &&
-        styleProps.color === 'secondary' && {
-          borderColor: theme.palette.secondary.main,
+        styleProps.color !== 'inherit' && {
+          borderColor: theme.palette[styleProps.color].main,
         }),
       ...(styleProps.variant === 'contained' && {
         boxShadow: 'none',
@@ -188,7 +171,7 @@ const ButtonGroup = React.forwardRef(function ButtonGroup(inProps, ref) {
     children,
     className,
     color = 'primary',
-    component: Component = 'div',
+    component = 'div',
     disabled = false,
     disableElevation = false,
     disableFocusRipple = false,
@@ -203,7 +186,7 @@ const ButtonGroup = React.forwardRef(function ButtonGroup(inProps, ref) {
   const styleProps = {
     ...props,
     color,
-    component: Component,
+    component,
     disabled,
     disableElevation,
     disableFocusRipple,
@@ -218,7 +201,7 @@ const ButtonGroup = React.forwardRef(function ButtonGroup(inProps, ref) {
 
   return (
     <ButtonGroupRoot
-      as={Component}
+      as={component}
       role="group"
       className={clsx(classes.root, className)}
       ref={ref}
@@ -257,7 +240,7 @@ const ButtonGroup = React.forwardRef(function ButtonGroup(inProps, ref) {
   );
 });
 
-ButtonGroup.propTypes = {
+ButtonGroup.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -278,7 +261,10 @@ ButtonGroup.propTypes = {
    * The color of the component. It supports those theme colors that make sense for this component.
    * @default 'primary'
    */
-  color: PropTypes.oneOf(['inherit', 'primary', 'secondary']),
+  color: PropTypes /* @typescript-to-proptypes-ignore */.oneOfType([
+    PropTypes.oneOf(['inherit', 'primary', 'secondary', 'error', 'info', 'success', 'warning']),
+    PropTypes.string,
+  ]),
   /**
    * The component used for the root node.
    * Either a string to use a HTML element or a component.
@@ -319,7 +305,7 @@ ButtonGroup.propTypes = {
    * `small` is equivalent to the dense button styling.
    * @default 'medium'
    */
-  size: PropTypes.oneOf(['large', 'medium', 'small']),
+  size: PropTypes.oneOf(['small', 'medium', 'large']),
   /**
    * The system prop that allows defining system overrides as well as additional CSS styles.
    */

@@ -1,3 +1,7 @@
+---
+components: GlobalStyles
+---
+
 # How to customize
 
 <p class="description">You can easily customize the appearance of a Material-UI component.</p>
@@ -16,7 +20,8 @@ You might need to change the style of a component for a specific implementation,
 
 ### Use the `sx` prop
 
-The easiest way to add style overrides for a one-off situation is to use the `sx` prop available on all Material-UI components. Here is an example:
+The easiest way to add style overrides for a one-off situation is to use the [`sx` prop](/system/basics/#the-sx-prop) available on all Material-UI components.
+Here is an example:
 
 {{"demo": "pages/customization/how-to-customize/SxProp.js"}}
 
@@ -103,12 +108,13 @@ You can rely on the following [global class names](/styles/advanced/#with-materi
 | :------------ | :------------------ |
 | active        | `.Mui-active`       |
 | checked       | `.Mui-checked`      |
+| completed     | `.Mui-completed`    |
 | disabled      | `.Mui-disabled`     |
 | error         | `.Mui-error`        |
-| focused       | `.Mui-focused`      |
-| focus visible | `.Mui-focusVisible` |
-| required      | `.Mui-required`     |
 | expanded      | `.Mui-expanded`     |
+| focus visible | `.Mui-focusVisible` |
+| focused       | `.Mui-focused`      |
+| required      | `.Mui-required`     |
 | selected      | `.Mui-selected`     |
 
 > ⚠️ Never style these pseudo-class class names directly:
@@ -127,7 +133,7 @@ You can rely on the following [global class names](/styles/advanced/#with-materi
 
 ## 2. Reusable style overrides
 
-If you find that you need the same overrides in multiple places across your application, you can use the `experimentalStyled()` utility for creating a reusable component:
+If you find that you need the same overrides in multiple places across your application, you can use the [`styled()`](/system/styled/) utility to create a reusable component:
 
 {{"demo": "pages/customization/how-to-customize/StyledCustomization.js", "defaultCodeOpen": true}}
 
@@ -141,11 +147,30 @@ Here are four alternatives; each has its pros and cons.
 
 ### Dynamic CSS
 
+Using the `styled()` utility offers a simple way for adding dynamic styles based on props.
+
 {{"demo": "pages/customization/how-to-customize/DynamicCSS.js", "defaultCodeOpen": false}}
 
-### Class name branch
+> ⚠️ Note that if you are using TypeScript you will need to update the prop's types of the new component.
 
-{{"demo": "pages/customization/how-to-customize/DynamicClassName.js"}}
+```tsx
+import * as React from 'react';
+import { styled } from '@material-ui/core/styles';
+import Slider, { SliderProps } from '@material-ui/core/Slider';
+
+interface StyledSliderProps extends SliderProps {
+  success?: boolean;
+}
+
+const StyledSlider = styled(Slider, {
+  shouldForwardProp: (prop) => prop !== 'success',
+})<StyledSliderProps>(({ success, theme }) => ({
+  ...(success &&
+    {
+      // the overrides added when the new prop is used
+    }),
+}));
+```
 
 ### CSS variables
 

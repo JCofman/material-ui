@@ -1,25 +1,12 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
 import formControlState from '../FormControl/formControlState';
 import useFormControl from '../FormControl/useFormControl';
 import FormLabel, { formLabelClasses } from '../FormLabel';
 import useThemeProps from '../styles/useThemeProps';
-import experimentalStyled, { shouldForwardProp } from '../styles/experimentalStyled';
+import styled, { rootShouldForwardProp } from '../styles/styled';
 import { getInputLabelUtilityClasses } from './inputLabelClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-  return deepmerge(styles.root, {
-    ...(!styleProps.formControl && styles.formControl),
-    ...(styleProps.size === 'small' && styles.sizeSmall),
-    ...(styleProps.shrink && styles.shrink),
-    ...(!styleProps.disableAnimation && styles.animated),
-    ...styles[styleProps.variant],
-    [`& .${formLabelClasses.asterisk}`]: styles.asterisk,
-  });
-};
 
 const useUtilityClasses = (styleProps) => {
   const { classes, formControl, size, shrink, disableAnimation, variant } = styleProps;
@@ -42,11 +29,23 @@ const useUtilityClasses = (styleProps) => {
   };
 };
 
-const InputLabelRoot = experimentalStyled(
-  FormLabel,
-  { shouldForwardProp: (prop) => shouldForwardProp(prop) || prop === 'classes' },
-  { name: 'MuiInputLabel', slot: 'Root', overridesResolver },
-)(({ theme, styleProps }) => ({
+const InputLabelRoot = styled(FormLabel, {
+  shouldForwardProp: (prop) => rootShouldForwardProp(prop) || prop === 'classes',
+  name: 'MuiInputLabel',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+    return [
+      { [`& .${formLabelClasses.asterisk}`]: styles.asterisk },
+      styles.root,
+      !styleProps.formControl && styles.formControl,
+      styleProps.size === 'small' && styles.sizeSmall,
+      styleProps.shrink && styles.shrink,
+      !styleProps.disableAnimation && styles.animated,
+      styles[styleProps.variant],
+    ];
+  },
+})(({ theme, styleProps }) => ({
   display: 'block',
   transformOrigin: 'top left',
   whiteSpace: 'nowrap',
@@ -149,7 +148,7 @@ const InputLabel = React.forwardRef(function InputLabel(inProps, ref) {
   );
 });
 
-InputLabel.propTypes = {
+InputLabel.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -165,7 +164,7 @@ InputLabel.propTypes = {
   /**
    * The color of the component. It supports those theme colors that make sense for this component.
    */
-  color: PropTypes.oneOf(['primary', 'secondary']),
+  color: PropTypes.oneOf(['error', 'info', 'primary', 'secondary', 'success', 'warning']),
   /**
    * If `true`, the transition animation is disabled.
    * @default false

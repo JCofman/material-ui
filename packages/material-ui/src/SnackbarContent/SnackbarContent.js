@@ -1,20 +1,12 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
-import experimentalStyled from '../styles/experimentalStyled';
+import { emphasize } from '@material-ui/system';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
-import { emphasize } from '../styles/colorManipulator';
 import Paper from '../Paper';
-import snackbarContentClasses, { getSnackbarContentUtilityClass } from './snackbarContentClasses';
-
-const overridesResolver = (props, styles) => {
-  return deepmerge(styles.root || {}, {
-    [`& .${snackbarContentClasses.action}`]: styles.action,
-    [`& .${snackbarContentClasses.message}`]: styles.message,
-  });
-};
+import { getSnackbarContentUtilityClass } from './snackbarContentClasses';
 
 const useUtilityClasses = (styleProps) => {
   const { classes } = styleProps;
@@ -28,15 +20,11 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getSnackbarContentUtilityClass, classes);
 };
 
-const SnackbarContentRoot = experimentalStyled(
-  Paper,
-  {},
-  {
-    name: 'MuiSnackbarContent',
-    slot: 'Root',
-    overridesResolver,
-  },
-)(({ theme }) => {
+const SnackbarContentRoot = styled(Paper, {
+  name: 'MuiSnackbarContent',
+  slot: 'Root',
+  overridesResolver: (props, styles) => styles.root,
+})(({ theme }) => {
   const emphasis = theme.palette.mode === 'light' ? 0.8 : 0.98;
   const backgroundColor = emphasize(theme.palette.background.default, emphasis);
 
@@ -57,25 +45,19 @@ const SnackbarContentRoot = experimentalStyled(
   };
 });
 
-const SnackbarContentMessage = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiSnackbarContent',
-    slot: 'Message',
-  },
-)({
+const SnackbarContentMessage = styled('div', {
+  name: 'MuiSnackbarContent',
+  slot: 'Message',
+  overridesResolver: (props, styles) => styles.message,
+})({
   padding: '8px 0',
 });
 
-const SnackbarContentAction = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiSnackbarContent',
-    slot: 'Action',
-  },
-)({
+const SnackbarContentAction = styled('div', {
+  name: 'MuiSnackbarContent',
+  slot: 'Action',
+  overridesResolver: (props, styles) => styles.action,
+})({
   display: 'flex',
   alignItems: 'center',
   marginLeft: 'auto',
@@ -86,8 +68,7 @@ const SnackbarContentAction = experimentalStyled(
 const SnackbarContent = React.forwardRef(function SnackbarContent(inProps, ref) {
   const props = useThemeProps({ props: inProps, name: 'MuiSnackbarContent' });
   const { action, className, message, role = 'alert', ...other } = props;
-  // TODO: convert to simple assignment after the type error in defaultPropsHandler.js:60:6 is fixed
-  const styleProps = { ...props };
+  const styleProps = props;
   const classes = useUtilityClasses(styleProps);
 
   return (
@@ -112,7 +93,7 @@ const SnackbarContent = React.forwardRef(function SnackbarContent(inProps, ref) 
   );
 });
 
-SnackbarContent.propTypes = {
+SnackbarContent.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -137,7 +118,7 @@ SnackbarContent.propTypes = {
    * The ARIA role attribute of the element.
    * @default 'alert'
    */
-  role: PropTypes.string,
+  role: PropTypes /* @typescript-to-proptypes-ignore */.string,
   /**
    * The system prop that allows defining system overrides as well as additional CSS styles.
    */

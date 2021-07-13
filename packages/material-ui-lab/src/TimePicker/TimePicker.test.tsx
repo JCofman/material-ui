@@ -2,11 +2,9 @@ import * as React from 'react';
 import TextField from '@material-ui/core/TextField';
 import { describeConformance } from 'test/utils';
 import TimePicker from './TimePicker';
-import { createPickerMount } from '../internal/pickers/test-utils';
+import { wrapPickerMount } from '../internal/pickers/test-utils';
 
 describe('<TimePicker />', () => {
-  const mount = createPickerMount();
-
   describeConformance(
     <TimePicker
       onChange={() => {}}
@@ -15,9 +13,8 @@ describe('<TimePicker />', () => {
     />,
     () => ({
       classes: {},
-      mount,
-      // TODO: The `ref` on the `TimePicker` is forwarded as `inputRef` in the `renderInput` parameters.
-      refInstanceof: window.HTMLInputElement,
+      wrapMount: wrapPickerMount,
+      refInstanceof: window.HTMLDivElement,
       skip: ['componentProp', 'mergeClassName', 'propsSpread', 'rootClass', 'reactTestRenderer'],
     }),
   );

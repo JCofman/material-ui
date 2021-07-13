@@ -1,9 +1,8 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
 import ButtonBase from '../ButtonBase';
 import unsupportedProp from '../utils/unsupportedProp';
@@ -11,37 +10,26 @@ import bottomNavigationActionClasses, {
   getBottomNavigationActionUtilityClass,
 } from './bottomNavigationActionClasses';
 
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...(!styleProps.showLabel && !styleProps.selected && styles.iconOnly),
-    [`& .${bottomNavigationActionClasses.wrapper}`]: styles.wrapper,
-    [`& .${bottomNavigationActionClasses.label}`]: styles.label,
-  });
-};
-
 const useUtilityClasses = (styleProps) => {
   const { classes, showLabel, selected } = styleProps;
 
   const slots = {
     root: ['root', !showLabel && !selected && 'iconOnly', selected && 'selected'],
-    wrapper: ['wrapper'],
     label: ['label', !showLabel && !selected && 'iconOnly', selected && 'selected'],
   };
 
   return composeClasses(slots, getBottomNavigationActionUtilityClass, classes);
 };
 
-const BottomNavigationActionRoot = experimentalStyled(
-  ButtonBase,
-  {},
-  {
-    name: 'MuiBottomNavigationAction',
-    slot: 'Root',
-    overridesResolver,
+const BottomNavigationActionRoot = styled(ButtonBase, {
+  name: 'MuiBottomNavigationAction',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [styles.root, !styleProps.showLabel && !styleProps.selected && styles.iconOnly];
   },
-)(({ theme, styleProps }) => ({
+})(({ theme, styleProps }) => ({
   /* Styles applied to the root element. */
   transition: theme.transitions.create(['color', 'padding-top'], {
     duration: theme.transitions.duration.short,
@@ -50,6 +38,7 @@ const BottomNavigationActionRoot = experimentalStyled(
   minWidth: 80,
   maxWidth: 168,
   color: theme.palette.text.secondary,
+  flexDirection: 'column',
   flex: '1',
   ...(!styleProps.showLabel &&
     !styleProps.selected && {
@@ -61,30 +50,11 @@ const BottomNavigationActionRoot = experimentalStyled(
   },
 }));
 
-const BottomNavigationActionWrapper = experimentalStyled(
-  'span',
-  {},
-  {
-    name: 'MuiBottomNavigationAction',
-    slot: 'Wrapper',
-  },
-)({
-  /* Styles applied to the span element that wraps the icon and label. */
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '100%',
-  flexDirection: 'column',
-});
-
-const BottomNavigationActionLabel = experimentalStyled(
-  'span',
-  {},
-  {
-    name: 'MuiBottomNavigationAction',
-    slot: 'Label',
-  },
-)(({ theme, styleProps }) => ({
+const BottomNavigationActionLabel = styled('span', {
+  name: 'MuiBottomNavigationAction',
+  slot: 'Label',
+  overridesResolver: (props, styles) => styles.label,
+})(({ theme, styleProps }) => ({
   /* Styles applied to the label's span element. */
   fontFamily: theme.typography.fontFamily,
   fontSize: theme.typography.pxToRem(12),
@@ -118,9 +88,7 @@ const BottomNavigationAction = React.forwardRef(function BottomNavigationAction(
     ...other
   } = props;
 
-  // TODO: convert to simple assignment after the type error in defaultPropsHandler.js:60:6 is fixed
-  const styleProps = { ...props };
-
+  const styleProps = props;
   const classes = useUtilityClasses(styleProps);
 
   const touchStartPos = React.useRef();
@@ -189,17 +157,15 @@ const BottomNavigationAction = React.forwardRef(function BottomNavigationAction(
       styleProps={styleProps}
       {...other}
     >
-      <BottomNavigationActionWrapper className={classes.wrapper} styleProps={styleProps}>
-        {icon}
-        <BottomNavigationActionLabel className={classes.label} styleProps={styleProps}>
-          {label}
-        </BottomNavigationActionLabel>
-      </BottomNavigationActionWrapper>
+      {icon}
+      <BottomNavigationActionLabel className={classes.label} styleProps={styleProps}>
+        {label}
+      </BottomNavigationActionLabel>
     </BottomNavigationActionRoot>
   );
 });
 
-BottomNavigationAction.propTypes = {
+BottomNavigationAction.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |

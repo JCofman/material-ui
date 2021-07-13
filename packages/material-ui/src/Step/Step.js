@@ -1,23 +1,13 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
+import { integerPropType } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
 import StepperContext from '../Stepper/StepperContext';
 import StepContext from './StepContext';
 import useThemeProps from '../styles/useThemeProps';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import { getStepUtilityClass } from './stepClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...styles[styleProps.orientation],
-    ...(styleProps.alternativeLabel && styles.alternativeLabel),
-    ...(styleProps.completed && styles.completed),
-  });
-};
 
 const useUtilityClasses = (styleProps) => {
   const { classes, orientation, alternativeLabel, completed } = styleProps;
@@ -29,15 +19,20 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getStepUtilityClass, classes);
 };
 
-const StepRoot = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiStep',
-    slot: 'Root',
-    overridesResolver,
+const StepRoot = styled('div', {
+  name: 'MuiStep',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [
+      styles.root,
+      styles[styleProps.orientation],
+      styleProps.alternativeLabel && styles.alternativeLabel,
+      styleProps.completed && styles.completed,
+    ];
   },
-)(({ styleProps }) => ({
+})(({ styleProps }) => ({
   /* Styles applied to the root element if `orientation="horizontal"`. */
   ...(styleProps.orientation === 'horizontal' && {
     paddingLeft: 8,
@@ -64,9 +59,8 @@ const Step = React.forwardRef(function Step(inProps, ref) {
     ...other
   } = props;
 
-  const { activeStep, connector, alternativeLabel, orientation, nonLinear } = React.useContext(
-    StepperContext,
-  );
+  const { activeStep, connector, alternativeLabel, orientation, nonLinear } =
+    React.useContext(StepperContext);
 
   let [active = false, completed = false, disabled = false] = [
     activeProp,
@@ -125,7 +119,7 @@ const Step = React.forwardRef(function Step(inProps, ref) {
   );
 });
 
-Step.propTypes = {
+Step.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -164,7 +158,7 @@ Step.propTypes = {
    * The position of the step.
    * The prop defaults to the value inherited from the parent Stepper component.
    */
-  index: PropTypes.number,
+  index: integerPropType,
   /**
    * If `true`, the Step is displayed as rendered last.
    * The prop defaults to the value inherited from the parent Stepper component.

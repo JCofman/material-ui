@@ -2,9 +2,9 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import { isFragment } from 'react-is';
 import clsx from 'clsx';
-import { chainPropTypes, deepmerge } from '@material-ui/utils';
+import { chainPropTypes } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
 import Avatar from '../Avatar';
 import avatarGroupClasses, { getAvatarGroupUtilityClass } from './avatarGroupClasses';
@@ -12,12 +12,6 @@ import avatarGroupClasses, { getAvatarGroupUtilityClass } from './avatarGroupCla
 const SPACINGS = {
   small: -16,
   medium: null,
-};
-
-const overridesResolver = (props, styles) => {
-  return deepmerge(styles.root || {}, {
-    [`& .${avatarGroupClasses.avatar}`]: styles.avatar,
-  });
 };
 
 const useUtilityClasses = (styleProps) => {
@@ -31,15 +25,14 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getAvatarGroupUtilityClass, classes);
 };
 
-const AvatarGroupRoot = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiAvatarGroup',
-    slot: 'Root',
-    overridesResolver,
-  },
-)(({ theme }) => ({
+const AvatarGroupRoot = styled('div', {
+  name: 'MuiAvatarGroup',
+  slot: 'Root',
+  overridesResolver: (props, styles) => ({
+    [`& .${avatarGroupClasses.avatar}`]: styles.avatar,
+    ...styles.root,
+  }),
+})(({ theme }) => ({
   [`& .MuiAvatar-root`]: {
     border: `2px solid ${theme.palette.background.default}`,
     boxSizing: 'content-box',
@@ -53,14 +46,11 @@ const AvatarGroupRoot = experimentalStyled(
   flexDirection: 'row-reverse',
 }));
 
-const AvatarGroupAvatar = experimentalStyled(
-  Avatar,
-  {},
-  {
-    name: 'MuiAvatarGroup',
-    slot: 'Avatar',
-  },
-)(({ theme }) => ({
+const AvatarGroupAvatar = styled(Avatar, {
+  name: 'MuiAvatarGroup',
+  slot: 'Avatar',
+  overridesResolver: (props, styles) => styles.avatar,
+})(({ theme }) => ({
   border: `2px solid ${theme.palette.background.default}`,
   boxSizing: 'content-box',
   marginLeft: -8,
@@ -149,7 +139,7 @@ const AvatarGroup = React.forwardRef(function AvatarGroup(inProps, ref) {
   );
 });
 
-AvatarGroup.propTypes = {
+AvatarGroup.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |

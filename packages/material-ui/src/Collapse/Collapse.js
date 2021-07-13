@@ -2,30 +2,15 @@ import * as React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { Transition } from 'react-transition-group';
-import { deepmerge, elementTypeAcceptingRef } from '@material-ui/utils';
+import { elementTypeAcceptingRef } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
-import { duration } from '../styles/transitions';
+import { duration } from '../styles/createTransitions';
 import { getTransitionProps } from '../transitions/utils';
 import useTheme from '../styles/useTheme';
 import { useForkRef } from '../utils';
-import collapseClasses, { getCollapseUtilityClass } from './collapseClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...styles[styleProps.orientation],
-    ...(styleProps.state === 'entered' && styles.entered),
-    ...(styleProps.state === 'exited' &&
-      !styleProps.in &&
-      styleProps.collapsedSize === '0px' &&
-      styles.hidden),
-    [`& .${collapseClasses.wrapper}`]: styles.wrapper,
-    [`& .${collapseClasses.wrapperInner}`]: styles.wrapperInner,
-  });
-};
+import { getCollapseUtilityClass } from './collapseClasses';
 
 const useUtilityClasses = (styleProps) => {
   const { orientation, classes } = styleProps;
@@ -41,15 +26,23 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getCollapseUtilityClass, classes);
 };
 
-const CollapseRoot = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiCollapse',
-    slot: 'Root',
-    overridesResolver,
+const CollapseRoot = styled('div', {
+  name: 'MuiCollapse',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [
+      styles.root,
+      styles[styleProps.orientation],
+      styleProps.state === 'entered' && styles.entered,
+      styleProps.state === 'exited' &&
+        !styleProps.in &&
+        styleProps.collapsedSize === '0px' &&
+        styles.hidden,
+    ];
   },
-)(({ theme, styleProps }) => ({
+})(({ theme, styleProps }) => ({
   /* Styles applied to the root element. */
   height: 0,
   overflow: 'hidden',
@@ -76,14 +69,11 @@ const CollapseRoot = experimentalStyled(
 }));
 
 /* Styles applied to the outer wrapper element. */
-const CollapseWrapper = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiCollapse',
-    slot: 'Wrapper',
-  },
-)(({ styleProps }) => ({
+const CollapseWrapper = styled('div', {
+  name: 'MuiCollapse',
+  slot: 'Wrapper',
+  overridesResolver: (props, styles) => styles.wrapper,
+})(({ styleProps }) => ({
   // Hack to get children with a negative margin to not falsify the height computation.
   display: 'flex',
   width: '100%',
@@ -94,14 +84,11 @@ const CollapseWrapper = experimentalStyled(
 }));
 
 /* Styles applied to the inner wrapper element. */
-const CollapseWrapperInner = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiCollapse',
-    slot: 'WrapperInner',
-  },
-)(({ styleProps }) => ({
+const CollapseWrapperInner = styled('div', {
+  name: 'MuiCollapse',
+  slot: 'WrapperInner',
+  overridesResolver: (props, styles) => styles.wrapperInner,
+})(({ styleProps }) => ({
   width: '100%',
   ...(styleProps.orientation === 'horizontal' && {
     width: 'auto',
@@ -121,6 +108,7 @@ const Collapse = React.forwardRef(function Collapse(inProps, ref) {
     className,
     collapsedSize: collapsedSizeProp = '0px',
     component,
+    easing,
     in: inProp,
     onEnter,
     onEntered,
@@ -198,8 +186,8 @@ const Collapse = React.forwardRef(function Collapse(inProps, ref) {
       wrapperRef.current.style.position = '';
     }
 
-    const { duration: transitionDuration } = getTransitionProps(
-      { style, timeout },
+    const { duration: transitionDuration, easing: transitionTimingFunction } = getTransitionProps(
+      { style, timeout, easing },
       {
         mode: 'enter',
       },
@@ -215,6 +203,7 @@ const Collapse = React.forwardRef(function Collapse(inProps, ref) {
     }
 
     node.style[size] = `${wrapperSize}px`;
+    node.style.transitionTimingFunction = transitionTimingFunction;
 
     if (onEntering) {
       onEntering(node, isAppearing);
@@ -241,8 +230,8 @@ const Collapse = React.forwardRef(function Collapse(inProps, ref) {
 
   const handleExiting = normalizedTransitionCallback((node) => {
     const wrapperSize = getWrapperSize();
-    const { duration: transitionDuration } = getTransitionProps(
-      { style, timeout },
+    const { duration: transitionDuration, easing: transitionTimingFunction } = getTransitionProps(
+      { style, timeout, easing },
       {
         mode: 'exit',
       },
@@ -260,6 +249,7 @@ const Collapse = React.forwardRef(function Collapse(inProps, ref) {
     }
 
     node.style[size] = collapsedSize;
+    node.style.transitionTimingFunction = transitionTimingFunction;
 
     if (onExiting) {
       onExiting(node);
@@ -323,7 +313,7 @@ const Collapse = React.forwardRef(function Collapse(inProps, ref) {
   );
 });
 
-Collapse.propTypes = {
+Collapse.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -350,6 +340,17 @@ Collapse.propTypes = {
    * Either a string to use a HTML element or a component.
    */
   component: elementTypeAcceptingRef,
+  /**
+   * The transition timing function.
+   * You may specify a single easing or a object containing enter and exit values.
+   */
+  easing: PropTypes.oneOfType([
+    PropTypes.shape({
+      enter: PropTypes.string,
+      exit: PropTypes.string,
+    }),
+    PropTypes.string,
+  ]),
   /**
    * If `true`, the component will transition in.
    */

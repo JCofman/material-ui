@@ -1,27 +1,27 @@
 import * as React from 'react';
+import { useForkRef } from '@material-ui/core/utils';
 import { WrapperVariantContext } from './WrapperVariantContext';
-import { KeyboardDateInput } from '../KeyboardDateInput';
 import { executeInTheNextEventLoopTick } from '../utils';
 import PickersPopper from '../PickersPopper';
-import { PrivateWrapperProps, DesktopWrapperProps } from './WrapperProps';
+import { InternalDesktopWrapperProps } from './DesktopWrapper';
 
-const DesktopTooltipWrapper: React.FC<PrivateWrapperProps & DesktopWrapperProps> = (props) => {
+function DesktopTooltipWrapper(props: InternalDesktopWrapperProps) {
   const {
-    open,
     children,
-    PopperProps,
-    onDismiss,
     DateInputProps,
+    KeyboardDateInputComponent,
+    onDismiss,
+    open,
+    PopperProps,
     TransitionComponent,
-    KeyboardDateInputComponent = KeyboardDateInput,
   } = props;
-  const inputRef = React.useRef<HTMLDivElement>(null);
+  const inputContainerRef = React.useRef<HTMLDivElement>(null);
   const popperRef = React.useRef<HTMLDivElement>(null);
 
   const handleBlur = () => {
     executeInTheNextEventLoopTick(() => {
       if (
-        inputRef.current?.contains(document.activeElement) ||
+        inputContainerRef.current?.contains(document.activeElement) ||
         popperRef.current?.contains(document.activeElement)
       ) {
         return;
@@ -31,14 +31,16 @@ const DesktopTooltipWrapper: React.FC<PrivateWrapperProps & DesktopWrapperProps>
     });
   };
 
+  const inputComponentRef = useForkRef(DateInputProps.ref, inputContainerRef);
+
   return (
     <WrapperVariantContext.Provider value="desktop">
-      <KeyboardDateInputComponent {...DateInputProps} containerRef={inputRef} onBlur={handleBlur} />
+      <KeyboardDateInputComponent {...DateInputProps} ref={inputComponentRef} onBlur={handleBlur} />
       <PickersPopper
         role="tooltip"
         open={open}
         containerRef={popperRef}
-        anchorEl={inputRef.current}
+        anchorEl={inputContainerRef.current}
         TransitionComponent={TransitionComponent}
         PopperProps={PopperProps}
         onBlur={handleBlur}
@@ -48,6 +50,6 @@ const DesktopTooltipWrapper: React.FC<PrivateWrapperProps & DesktopWrapperProps>
       </PickersPopper>
     </WrapperVariantContext.Provider>
   );
-};
+}
 
 export default DesktopTooltipWrapper;

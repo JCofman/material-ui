@@ -3,33 +3,26 @@ import { expect } from 'chai';
 import PropTypes from 'prop-types';
 import { spy } from 'sinon';
 import {
-  getClasses,
-  createMount,
-  describeConformance,
+  describeConformanceV5,
   act,
   createEvent,
   createClientRender,
   fireEvent,
   screen,
 } from 'test/utils';
-import TreeItem from './TreeItem';
-import TreeView from '../TreeView';
+import TreeView from '@material-ui/lab/TreeView';
+import TreeItem, { treeItemClasses as classes } from '@material-ui/lab/TreeItem';
 
 describe('<TreeItem />', () => {
-  let classes;
-  const mount = createMount({ strict: true });
   const render = createClientRender();
 
-  before(() => {
-    classes = getClasses(<TreeItem nodeId="one" label="one" />);
-  });
-
-  describeConformance(<TreeItem nodeId="one" label="one" />, () => ({
+  describeConformanceV5(<TreeItem nodeId="one" label="one" />, () => ({
     classes,
     inheritComponent: 'li',
-    mount,
+    render,
+    muiName: 'MuiTreeItem',
     refInstanceof: window.HTMLLIElement,
-    skip: ['componentProp'],
+    skip: ['componentProp', 'componentsProp', 'themeVariants'],
   }));
 
   describe('warnings', () => {
@@ -40,7 +33,7 @@ describe('<TreeItem />', () => {
     it('should warn if an onFocus callback is supplied', () => {
       expect(() => {
         PropTypes.checkPropTypes(
-          TreeItem.Naked.propTypes,
+          TreeItem.propTypes,
           { nodeId: 'one', onFocus: () => {} },
           'prop',
           'TreeItem',
@@ -51,7 +44,7 @@ describe('<TreeItem />', () => {
     it('should warn if an `ContentComponent` that does not hold a ref is used', () => {
       expect(() => {
         PropTypes.checkPropTypes(
-          TreeItem.Naked.propTypes,
+          TreeItem.propTypes,
           { nodeId: 'one', ContentComponent: () => {} },
           'prop',
           'TreeItem',
@@ -513,8 +506,8 @@ describe('<TreeItem />', () => {
 
           act(() => {
             screen.getByRole('tree').focus();
-            fireEvent.keyDown(screen.getByRole('tree'), { key: 'ArrowLeft' });
           });
+          fireEvent.keyDown(screen.getByRole('tree'), { key: 'ArrowLeft' });
 
           expect(firstItem).to.have.attribute('aria-expanded', 'false');
           expect(screen.getByTestId('one')).toHaveVirtualFocus();
@@ -1106,8 +1099,8 @@ describe('<TreeItem />', () => {
 
           act(() => {
             getByRole('tree').focus();
-            fireEvent.keyDown(getByRole('tree'), { key: ' ' });
           });
+          fireEvent.keyDown(getByRole('tree'), { key: ' ' });
 
           expect(getByTestId('one')).not.to.have.attribute('aria-selected');
         });
@@ -1447,16 +1440,16 @@ describe('<TreeItem />', () => {
             </TreeView>,
           );
 
+          fireEvent.click(getByText('five'));
+          fireEvent.click(getByText('five'));
           // Focus node five
           act(() => {
-            fireEvent.click(getByText('five'));
-            fireEvent.click(getByText('five'));
             getByRole('tree').focus();
-            fireEvent.keyDown(getByRole('tree'), {
-              key: 'End',
-              shiftKey: true,
-              ctrlKey: true,
-            });
+          });
+          fireEvent.keyDown(getByRole('tree'), {
+            key: 'End',
+            shiftKey: true,
+            ctrlKey: true,
           });
 
           expect(queryAllByRole('treeitem', { selected: true })).to.have.length(0);

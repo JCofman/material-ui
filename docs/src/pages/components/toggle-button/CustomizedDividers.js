@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { experimentalStyled as styled } from '@material-ui/core/styles';
+import { styled } from '@material-ui/core/styles';
 import FormatAlignLeftIcon from '@material-ui/icons/FormatAlignLeft';
 import FormatAlignCenterIcon from '@material-ui/icons/FormatAlignCenter';
 import FormatAlignRightIcon from '@material-ui/icons/FormatAlignRight';
@@ -17,7 +17,10 @@ import ToggleButtonGroup from '@material-ui/core/ToggleButtonGroup';
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
   '& .MuiToggleButtonGroup-grouped': {
     margin: theme.spacing(0.5),
-    border: 'none',
+    border: 0,
+    '&.Mui-disabled': {
+      border: 0,
+    },
     '&:not(:first-of-type)': {
       borderRadius: theme.shape.borderRadius,
     },

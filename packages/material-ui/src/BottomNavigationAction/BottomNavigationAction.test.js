@@ -1,26 +1,19 @@
 import * as React from 'react';
 import { expect } from 'chai';
 import { spy, useFakeTimers } from 'sinon';
-import {
-  createMount,
-  describeConformanceV5,
-  createClientRender,
-  within,
-  fireEvent,
-} from 'test/utils';
-import ButtonBase from '../ButtonBase';
-import BottomNavigationAction from './BottomNavigationAction';
-import classes from './bottomNavigationActionClasses';
+import { describeConformanceV5, createClientRender, within, fireEvent } from 'test/utils';
+import BottomNavigationAction, {
+  bottomNavigationActionClasses as classes,
+} from '@material-ui/core/BottomNavigationAction';
+import ButtonBase from '@material-ui/core/ButtonBase';
 
 describe('<BottomNavigationAction />', () => {
   const render = createClientRender();
-  const mount = createMount();
 
   describeConformanceV5(<BottomNavigationAction />, () => ({
     classes,
     inheritComponent: ButtonBase,
     render,
-    mount,
     muiName: 'MuiBottomNavigationAction',
     refInstanceof: window.HTMLButtonElement,
     testVariantProps: { showLabel: true },

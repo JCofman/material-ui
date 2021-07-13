@@ -1,13 +1,11 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import { createMount, createClientRender, describeConformanceV5 } from 'test/utils';
-import TableBody from './TableBody';
+import { createClientRender, describeConformanceV5 } from 'test/utils';
+import TableBody, { tableBodyClasses as classes } from '@material-ui/core/TableBody';
 import Tablelvl2Context from '../Table/Tablelvl2Context';
-import classes from './tableBodyClasses';
 
 describe('<TableBody />', () => {
   const render = createClientRender();
-  const mount = createMount();
 
   function renderInTable(node) {
     return render(<table>{node}</table>);
@@ -16,13 +14,13 @@ describe('<TableBody />', () => {
   describeConformanceV5(<TableBody />, () => ({
     classes,
     inheritComponent: 'tbody',
-    mount: (node) => {
+    wrapMount: (mount) => (node) => {
       const wrapper = mount(<table>{node}</table>);
       return wrapper.find('table').childAt(0);
     },
     render: (node) => {
-      const { container, ...rest } = render(<table>{node}</table>);
-      return { container: container.firstChild, ...rest };
+      const { container, ...other } = render(<table>{node}</table>);
+      return { container: container.firstChild, ...other };
     },
     muiName: 'MuiTableBody',
     testVariantProps: { variant: 'foo' },

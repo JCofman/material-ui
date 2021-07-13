@@ -2,7 +2,8 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import Interpolate from '@trendmicro/react-interpolate';
-import { styled, withStyles } from '@material-ui/core/styles';
+import { styled, createTheme } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/styles';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Container from '@material-ui/core/Container';
@@ -83,7 +84,7 @@ function AppFooter(props) {
             <Grid item xs={12} sm={3}>
               <div className={classes.logo}>
                 <img src="/static/logo_raw.svg" alt="" />
-                <Link variant="body1" color="inherit" href="/">
+                <Link underline="hover" variant="body1" color="inherit" href="/">
                   Material-UI
                 </Link>
               </div>
@@ -97,13 +98,19 @@ function AppFooter(props) {
                   <Link
                     color="inherit"
                     variant="body2"
+                    underline="hover"
                     href="https://github.com/mui-org/material-ui"
                   >
                     GitHub
                   </Link>
                 </li>
                 <li>
-                  <Link color="inherit" variant="body2" href="https://twitter.com/MaterialUI">
+                  <Link
+                    underline="hover"
+                    color="inherit"
+                    variant="body2"
+                    href="https://twitter.com/MaterialUI"
+                  >
                     Twitter
                   </Link>
                 </li>
@@ -111,13 +118,19 @@ function AppFooter(props) {
                   <Link
                     color="inherit"
                     variant="body2"
+                    underline="hover"
                     href="https://stackoverflow.com/questions/tagged/material-ui"
                   >
                     StackOverflow
                   </Link>
                 </li>
                 <li>
-                  <Link color="inherit" variant="body2" href="/discover-more/team/">
+                  <Link
+                    underline="hover"
+                    color="inherit"
+                    variant="body2"
+                    href="/discover-more/team/"
+                  >
                     {t('pages./discover-more/team')}
                   </Link>
                 </li>
@@ -129,17 +142,32 @@ function AppFooter(props) {
               </Typography>
               <ul>
                 <li>
-                  <Link color="inherit" variant="body2" href="/getting-started/support/">
+                  <Link
+                    underline="hover"
+                    color="inherit"
+                    variant="body2"
+                    href="/getting-started/support/"
+                  >
                     {t('pages./getting-started/support')}
                   </Link>
                 </li>
                 <li>
-                  <Link color="inherit" variant="body2" href="https://medium.com/material-ui/">
+                  <Link
+                    underline="hover"
+                    color="inherit"
+                    variant="body2"
+                    href="https://medium.com/material-ui/"
+                  >
                     {t('blogTitle')}
                   </Link>
                 </li>
                 <li>
-                  <Link color="inherit" variant="body2" href="/components/material-icons/">
+                  <Link
+                    underline="hover"
+                    color="inherit"
+                    variant="body2"
+                    href="/components/material-icons/"
+                  >
                     {t('pages./components/material-icons')}
                   </Link>
                 </li>
@@ -151,27 +179,27 @@ function AppFooter(props) {
               </Typography>
               <ul>
                 <li>
-                  <Link color="inherit" variant="body2" href="/company/about/">
+                  <Link underline="hover" color="inherit" variant="body2" href="/company/about/">
                     About
                   </Link>
                 </li>
                 <li>
-                  <Link color="inherit" variant="body2" href="/company/contact/">
+                  <Link underline="hover" color="inherit" variant="body2" href="/company/contact/">
                     Contact Us
                   </Link>
                 </li>
                 <li className={classes.careers}>
-                  <Link color="inherit" variant="body2" href="/company/careers/">
+                  <Link underline="hover" color="inherit" variant="body2" href="/company/careers/">
                     Careers
                   </Link>
-                  <Link color="inherit" variant="body2" href="/company/careers/">
+                  <Link underline="hover" color="inherit" variant="body2" href="/company/careers/">
                     <Badge>hiring</Badge>
                   </Link>
                 </li>
               </ul>
             </Grid>
           </Grid>
-          <Typography className={classes.version} color="textSecondary" variant="body2">
+          <Typography className={classes.version} color="text.secondary" variant="body2">
             <Interpolate
               replacement={{
                 versionNumber: (
@@ -209,4 +237,5 @@ AppFooter.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(AppFooter);
+const defaultTheme = createTheme();
+export default withStyles(styles, { defaultTheme })(AppFooter);

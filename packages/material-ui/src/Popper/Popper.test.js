@@ -1,23 +1,18 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import { spy, useFakeTimers } from 'sinon';
+import { useFakeTimers } from 'sinon';
 import PropTypes from 'prop-types';
-import {
-  createMount,
-  describeConformance,
-  act,
-  createClientRender,
-  fireEvent,
-  screen,
-} from 'test/utils';
-import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
-import Grow from '../Grow';
-import Popper from './Popper';
+import { describeConformance, act, createClientRender, fireEvent, screen } from 'test/utils';
+import { ThemeProvider, createTheme } from '@material-ui/core/styles';
+import Grow from '@material-ui/core/Grow';
+import Popper from '@material-ui/core/Popper';
 
 describe('<Popper />', () => {
-  const mount = createMount({ strict: true });
   let rtlTheme;
-  const render = createClientRender();
+  const render = createClientRender({
+    // StrictEffectsViolation: need to call `handleOpen` in mount effects
+    strictEffects: false,
+  });
   const defaultProps = {
     anchorEl: () => document.createElement('svg'),
     children: <span>Hello World</span>,
@@ -25,7 +20,7 @@ describe('<Popper />', () => {
   };
 
   before(() => {
-    rtlTheme = createMuiTheme({
+    rtlTheme = createTheme({
       direction: 'rtl',
     });
   });
@@ -33,7 +28,6 @@ describe('<Popper />', () => {
   describeConformance(<Popper {...defaultProps} />, () => ({
     classes: {},
     inheritComponent: 'div',
-    mount,
     refInstanceof: window.HTMLDivElement,
     skip: [
       'componentProp',
@@ -44,17 +38,15 @@ describe('<Popper />', () => {
 
   describe('prop: placement', () => {
     it('should have top placement', () => {
-      const renderSpy = spy();
       render(
         <Popper {...defaultProps} placement="top">
           {({ placement }) => {
-            renderSpy(placement);
-            return null;
+            return <span data-testid="renderSpy" data-placement={placement} />;
           }}
         </Popper>,
       );
-      expect(renderSpy.callCount).to.equal(2); // strict mode renders twice
-      expect(renderSpy.args[0][0]).to.equal('top');
+
+      expect(screen.getByTestId('renderSpy')).to.have.attribute('data-placement', 'top');
     });
 
     [

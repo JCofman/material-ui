@@ -78,7 +78,7 @@ function isNodeMatchingSelectorFocusable(node) {
   return true;
 }
 
-export function defaultGetTabbable(root) {
+function defaultGetTabbable(root) {
   const regularTabNodes = [];
   const orderedTabNodes = [];
 
@@ -108,6 +108,10 @@ export function defaultGetTabbable(root) {
     .concat(regularTabNodes);
 }
 
+function defaultIsEnabled() {
+  return true;
+}
+
 /**
  * Utility component that locks focus inside the component.
  */
@@ -117,15 +121,14 @@ function Unstable_TrapFocus(props) {
     disableAutoFocus = false,
     disableEnforceFocus = false,
     disableRestoreFocus = false,
-    getDoc,
     getTabbable = defaultGetTabbable,
-    isEnabled,
+    isEnabled = defaultIsEnabled,
     open,
   } = props;
   const ignoreNextEnforceFocus = React.useRef();
   const sentinelStart = React.useRef(null);
   const sentinelEnd = React.useRef(null);
-  const nodeToRestore = React.useRef();
+  const nodeToRestore = React.useRef(null);
   const reactFocusEventTarget = React.useRef(null);
   // This variable is useful when disableAutoFocus is true.
   // It waits for the active element to move into the component to activate.
@@ -134,23 +137,6 @@ function Unstable_TrapFocus(props) {
   const rootRef = React.useRef(null);
   const handleRef = useForkRef(children.ref, rootRef);
   const lastKeydown = React.useRef(null);
-
-  const prevOpenRef = React.useRef();
-  React.useEffect(() => {
-    prevOpenRef.current = open;
-  }, [open]);
-
-  if (!prevOpenRef.current && open && typeof window !== 'undefined' && !disableAutoFocus) {
-    // WARNING: Potentially unsafe in concurrent mode.
-    // The way the read on `nodeToRestore` is setup could make this actually safe.
-    // Say we render `open={false}` -> `open={true}` but never commit.
-    // We have now written a state that wasn't committed. But no committed effect
-    // will read this wrong value. We only read from `nodeToRestore` in effects
-    // that were committed on `open={true}`
-    // WARNING: Prevents the instance from being garbage collected. Should only
-    // hold a weak ref.
-    nodeToRestore.current = getDoc().activeElement;
-  }
 
   React.useEffect(() => {
     // We might render an empty child.
@@ -317,7 +303,7 @@ function Unstable_TrapFocus(props) {
   }, [disableAutoFocus, disableEnforceFocus, disableRestoreFocus, isEnabled, open, getTabbable]);
 
   const onFocus = (event) => {
-    if (!activated.current) {
+    if (nodeToRestore.current === null) {
       nodeToRestore.current = event.relatedTarget;
     }
     activated.current = true;
@@ -330,7 +316,7 @@ function Unstable_TrapFocus(props) {
   };
 
   const handleFocusSentinel = (event) => {
-    if (!activated.current) {
+    if (nodeToRestore.current === null) {
       nodeToRestore.current = event.relatedTarget;
     }
     activated.current = true;
@@ -350,7 +336,7 @@ function Unstable_TrapFocus(props) {
   );
 }
 
-Unstable_TrapFocus.propTypes = {
+Unstable_TrapFocus.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -384,21 +370,21 @@ Unstable_TrapFocus.propTypes = {
    */
   disableRestoreFocus: PropTypes.bool,
   /**
-   * Return the document to consider.
-   * We use it to implement the restore focus between different browser documents.
-   */
-  getDoc: PropTypes.func.isRequired,
-  /**
    * Returns an array of ordered tabbable nodes (i.e. in tab order) within the root.
    * For instance, you can provide the "tabbable" npm dependency.
    * @param {HTMLElement} root
    */
   getTabbable: PropTypes.func,
   /**
-   * Do we still want to enforce the focus?
-   * This prop helps nesting TrapFocus elements.
+   * This prop extends the `open` prop.
+   * It allows to toggle the open state without having to wait for a rerender when changing the `open` prop.
+   * This prop should be memoized.
+   * It can be used to support multiple trap focus mounted at the same time.
+   * @default function defaultIsEnabled() {
+   *   return true;
+   * }
    */
-  isEnabled: PropTypes.func.isRequired,
+  isEnabled: PropTypes.func,
   /**
    * If `true`, focus is locked.
    */

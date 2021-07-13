@@ -1,9 +1,9 @@
 import * as React from 'react';
-import url from 'url';
 import clsx from 'clsx';
 import useLazyCSS from 'docs/src/modules/utils/useLazyCSS';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { alpha, useTheme, makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/styles';
+import { alpha, useTheme } from '@material-ui/core/styles';
 import Input from '@material-ui/core/Input';
 import SearchIcon from '@material-ui/icons/Search';
 import { handleEvent } from 'docs/src/modules/components/MarkdownLinks';
@@ -199,7 +199,8 @@ export default function AppSearch() {
         },
         handleSelected: (input, event, suggestion) => {
           event.button = 0;
-          const parseUrl = url.parse(suggestion.url);
+          const parseUrl = document.createElement('a');
+          parseUrl.href = suggestion.url;
           handleEvent(event, parseUrl.pathname + parseUrl.hash);
           input.close();
         },

@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import { createMount, createClientRender, describeConformance } from 'test/utils';
+import { createClientRender, describeConformance } from 'test/utils';
 import BackdropUnstyled, {
   backdropUnstyledClasses as classes,
 } from '@material-ui/unstyled/BackdropUnstyled';
 
 describe('<BackdropUnstyled />', () => {
-  const mount = createMount();
   const render = createClientRender();
 
   describeConformance(
@@ -16,7 +15,7 @@ describe('<BackdropUnstyled />', () => {
     () => ({
       classes,
       inheritComponent: 'div',
-      mount,
+      render,
       refInstanceof: window.HTMLDivElement,
       testComponentPropWith: 'div',
     }),
@@ -27,10 +26,10 @@ describe('<BackdropUnstyled />', () => {
     let theme = null;
 
     const Root = React.forwardRef(
-      ({ styleProps: stylePropsProp, theme: themeProp, ...rest }, ref) => {
+      ({ styleProps: stylePropsProp, theme: themeProp, ...other }, ref) => {
         styleProps = stylePropsProp;
         theme = themeProp;
-        return <span ref={ref} {...rest} />;
+        return <span ref={ref} {...other} />;
       },
     );
 

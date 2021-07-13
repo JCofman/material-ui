@@ -203,6 +203,9 @@ export * from './ListItem';
 export { default as ListItemAvatar } from './ListItemAvatar';
 export * from './ListItemAvatar';
 
+export { default as ListItemButton } from './ListItemButton';
+export * from './ListItemButton';
+
 export { default as ListItemIcon } from './ListItemIcon';
 export * from './ListItemIcon';
 
@@ -292,6 +295,9 @@ export * from './SpeedDialAction';
 
 export { default as SpeedDialIcon } from './SpeedDialIcon';
 export * from './SpeedDialIcon';
+
+export { default as Stack } from './Stack';
+export * from './Stack';
 
 export { default as Step } from './Step';
 export * from './Step';
@@ -389,9 +395,6 @@ export * from './usePagination';
 export { default as useScrollTrigger } from './useScrollTrigger';
 export * from './useScrollTrigger';
 
-export { default as withWidth } from './withWidth';
-export * from './withWidth';
-
 export { default as Zoom } from './Zoom';
 export * from './Zoom';
 
@@ -401,8 +404,4 @@ export { default as useAutocomplete } from './useAutocomplete';
 export { default as GlobalStyles } from './GlobalStyles';
 export * from './GlobalStyles';
 
-/**
- * @deprecated will be removed in v5 beta, please use StyledEngineProvider instead
- */
-export { default as StylesProvider } from './StyledEngineProvider';
-export { default as StyledEngineProvider } from './StyledEngineProvider';
+export { StyledEngineProvider } from './styles';

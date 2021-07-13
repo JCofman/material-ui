@@ -3,28 +3,23 @@ import { expect } from 'chai';
 import {
   describeConformanceV5,
   createClientRender,
-  createMount,
   createServerRender,
   act,
   fireEvent,
 } from 'test/utils';
-import Fab from './Fab';
-import ButtonBase, { touchRippleClasses } from '../ButtonBase';
-import Icon from '../Icon';
-import classes from './fabClasses';
+import Fab, { fabClasses as classes } from '@material-ui/core/Fab';
+import ButtonBase, { touchRippleClasses } from '@material-ui/core/ButtonBase';
+import Icon from '@material-ui/core/Icon';
 
 describe('<Fab />', () => {
   const render = createClientRender();
-  const mount = createMount();
 
   describeConformanceV5(<Fab>Conformance?</Fab>, () => ({
     classes,
     inheritComponent: ButtonBase,
     render,
-    mount,
     muiName: 'MuiFab',
     testVariantProps: { variant: 'extended' },
-    testDeepOverrides: { slotName: 'label', slotClassName: classes.label },
     testStateOverrides: { prop: 'size', value: 'small', styleKey: 'sizeSmall' },
     refInstanceof: window.HTMLButtonElement,
     skip: ['componentsProp'],
@@ -164,8 +159,8 @@ describe('<Fab />', () => {
     });
 
     it('should server-side render', () => {
-      const markup = serverRender(<Fab>Fab</Fab>);
-      expect(markup.text()).to.equal('Fab');
+      const container = serverRender(<Fab>Fab</Fab>);
+      expect(container.firstChild).to.have.text('Fab');
     });
   });
 });

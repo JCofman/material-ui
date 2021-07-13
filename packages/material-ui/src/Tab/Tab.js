@@ -1,26 +1,13 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
 import ButtonBase from '../ButtonBase';
 import capitalize from '../utils/capitalize';
 import useThemeProps from '../styles/useThemeProps';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import unsupportedProp from '../utils/unsupportedProp';
 import tabClasses, { getTabUtilityClass } from './tabClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...(styleProps.label && styleProps.icon && styles.labelIcon),
-    ...styles[`textColor${capitalize(styleProps.textColor)}`],
-    ...(styleProps.fullWidth && styles.fullWidth),
-    ...(styleProps.wrapped && styles.wrapped),
-    [`& .${tabClasses.wrapper}`]: styles.wrapper,
-  });
-};
 
 const useUtilityClasses = (styleProps) => {
   const { classes, textColor, fullWidth, wrapped, icon, label, selected, disabled } = styleProps;
@@ -35,41 +22,46 @@ const useUtilityClasses = (styleProps) => {
       selected && 'selected',
       disabled && 'disabled',
     ],
-    wrapper: ['wrapper'],
   };
 
   return composeClasses(slots, getTabUtilityClass, classes);
 };
 
-const TabRoot = experimentalStyled(
-  ButtonBase,
-  {},
-  {
-    name: 'MuiTab',
-    slot: 'Root',
-    overridesResolver,
+const TabRoot = styled(ButtonBase, {
+  name: 'MuiTab',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [
+      styles.root,
+      styleProps.label && styleProps.icon && styles.labelIcon,
+      styles[`textColor${capitalize(styleProps.textColor)}`],
+      styleProps.fullWidth && styles.fullWidth,
+      styleProps.wrapped && styles.wrapped,
+    ];
   },
-)(({ theme, styleProps }) => ({
+})(({ theme, styleProps }) => ({
   /* Styles applied to the root element. */
   ...theme.typography.button,
-  maxWidth: 264,
-  minWidth: 72,
+  maxWidth: 360,
+  minWidth: 90,
   position: 'relative',
   minHeight: 48,
   flexShrink: 0,
-  padding: '6px 12px',
+  padding: '12px 16px',
   overflow: 'hidden',
   whiteSpace: 'normal',
   textAlign: 'center',
-  [theme.breakpoints.up('sm')]: {
-    minWidth: 160,
-  },
+  flexDirection: 'column',
+  lineHeight: 1.25,
   /* Styles applied to the root element if both `icon` and `label` are provided. */
   ...(styleProps.icon &&
     styleProps.label && {
       minHeight: 72,
       paddingTop: 9,
-      [`& .${tabClasses.wrapper} > *:first-child`]: {
+      paddingBottom: 9,
+      [`& > *:first-child`]: {
         marginBottom: 6,
       },
     }),
@@ -77,30 +69,30 @@ const TabRoot = experimentalStyled(
   ...(styleProps.textColor === 'inherit' && {
     color: 'inherit',
     opacity: 0.6, // same opacity as theme.palette.text.secondary
-    '&.Mui-selected': {
+    [`&.${tabClasses.selected}`]: {
       opacity: 1,
     },
-    '&.Mui-disabled': {
+    [`&.${tabClasses.disabled}`]: {
       opacity: theme.palette.action.disabledOpacity,
     },
   }),
   /* Styles applied to the root element if the parent [`Tabs`](/api/tabs/) has `textColor="primary"`. */
   ...(styleProps.textColor === 'primary' && {
     color: theme.palette.text.secondary,
-    '&.Mui-selected': {
+    [`&.${tabClasses.selected}`]: {
       color: theme.palette.primary.main,
     },
-    '&.Mui-disabled': {
+    [`&.${tabClasses.disabled}`]: {
       color: theme.palette.text.disabled,
     },
   }),
   /* Styles applied to the root element if the parent [`Tabs`](/api/tabs/) has `textColor="secondary"`. */
   ...(styleProps.textColor === 'secondary' && {
     color: theme.palette.text.secondary,
-    '&.Mui-selected': {
+    [`&.${tabClasses.selected}`]: {
       color: theme.palette.secondary.main,
     },
-    '&.Mui-disabled': {
+    [`&.${tabClasses.disabled}`]: {
       color: theme.palette.text.disabled,
     },
   }),
@@ -114,25 +106,8 @@ const TabRoot = experimentalStyled(
   /* Styles applied to the root element if `wrapped={true}`. */
   ...(styleProps.wrapped && {
     fontSize: theme.typography.pxToRem(12),
-    lineHeight: 1.5,
   }),
 }));
-
-const TabWrapper = experimentalStyled(
-  'span',
-  {},
-  {
-    name: 'MuiTab',
-    slot: 'Wrapper',
-  },
-)({
-  /* Styles applied to the `icon` and `label`'s wrapper element. */
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '100%',
-  flexDirection: 'column',
-});
 
 const Tab = React.forwardRef(function Tab(inProps, ref) {
   const props = useThemeProps({ props: inProps, name: 'MuiTab' });
@@ -208,16 +183,14 @@ const Tab = React.forwardRef(function Tab(inProps, ref) {
       tabIndex={selected ? 0 : -1}
       {...other}
     >
-      <TabWrapper className={classes.wrapper} styleProps={styleProps}>
-        {icon}
-        {label}
-      </TabWrapper>
+      {icon}
+      {label}
       {indicator}
     </TabRoot>
   );
 });
 
-Tab.propTypes = {
+Tab.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -249,7 +222,7 @@ Tab.propTypes = {
    * If `true`, the ripple effect is disabled.
    *
    * ⚠️ Without a ripple there is no styling for :focus-visible by default. Be sure
-   * to highlight the element by applying separate styles with the `.Mui-focusedVisible` class.
+   * to highlight the element by applying separate styles with the `.Mui-focusVisible` class.
    * @default false
    */
   disableRipple: PropTypes.bool,

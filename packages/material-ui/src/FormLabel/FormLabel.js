@@ -1,24 +1,13 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
 import formControlState from '../FormControl/formControlState';
 import useFormControl from '../FormControl/useFormControl';
 import capitalize from '../utils/capitalize';
 import useThemeProps from '../styles/useThemeProps';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import formLabelClasses, { getFormLabelUtilityClasses } from './formLabelClasses';
-
-export const overridesResolver = ({ styleProps }, styles) => {
-  return deepmerge(styles.root || {}, {
-    ...(styleProps.color === 'secondary' && styles.colorSecondary),
-    ...(styleProps.filled && styles.filled),
-    [`& .${formLabelClasses.asterisk}`]: {
-      ...styles.asterisk,
-    },
-  });
-};
 
 const useUtilityClasses = (styleProps) => {
   const { classes, color, focused, disabled, error, filled, required } = styleProps;
@@ -38,32 +27,39 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getFormLabelUtilityClasses, classes);
 };
 
-export const FormLabelRoot = experimentalStyled(
-  'label',
-  {},
-  { name: 'MuiFormLabel', slot: 'Root', overridesResolver },
-)(({ theme, styleProps }) => ({
+export const FormLabelRoot = styled('label', {
+  name: 'MuiFormLabel',
+  slot: 'Root',
+  overridesResolver: ({ styleProps }, styles) => {
+    return {
+      ...styles.root,
+      ...(styleProps.color === 'secondary' && styles.colorSecondary),
+      ...(styleProps.filled && styles.filled),
+    };
+  },
+})(({ theme, styleProps }) => ({
   color: theme.palette.text.secondary,
   ...theme.typography.body1,
   lineHeight: '1.4375em',
   padding: 0,
-  '&.Mui-focused': {
+  position: 'relative',
+  [`&.${formLabelClasses.focused}`]: {
     color: theme.palette[styleProps.color].main,
   },
-  '&.Mui-disabled': {
+  [`&.${formLabelClasses.disabled}`]: {
     color: theme.palette.text.disabled,
   },
-  '&.Mui-error': {
+  [`&.${formLabelClasses.error}`]: {
     color: theme.palette.error.main,
   },
 }));
 
-const AsteriskComponent = experimentalStyled(
-  'span',
-  {},
-  { name: 'MuiFormLabel', slot: 'Asterisk' },
-)(({ theme }) => ({
-  '&.Mui-error': {
+const AsteriskComponent = styled('span', {
+  name: 'MuiFormLabel',
+  slot: 'Asterisk',
+  overridesResolver: (props, styles) => styles.asterisk,
+})(({ theme }) => ({
+  [`&.${formLabelClasses.error}`]: {
     color: theme.palette.error.main,
   },
 }));
@@ -121,7 +117,7 @@ const FormLabel = React.forwardRef(function FormLabel(inProps, ref) {
   );
 });
 
-FormLabel.propTypes = {
+FormLabel.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -141,7 +137,7 @@ FormLabel.propTypes = {
   /**
    * The color of the component. It supports those theme colors that make sense for this component.
    */
-  color: PropTypes.oneOf(['primary', 'secondary']),
+  color: PropTypes.oneOf(['error', 'info', 'primary', 'secondary', 'success', 'warning']),
   /**
    * The component used for the root node.
    * Either a string to use a HTML element or a component.

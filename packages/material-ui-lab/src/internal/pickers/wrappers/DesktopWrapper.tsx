@@ -1,21 +1,32 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
+import { useForkRef } from '@material-ui/core/utils';
 import { WrapperVariantContext } from './WrapperVariantContext';
-import { KeyboardDateInput } from '../KeyboardDateInput';
-import PickersPopper from '../PickersPopper';
-import { PrivateWrapperProps, DesktopWrapperProps } from './WrapperProps';
+import PickersPopper, { ExportedPickerPopperProps } from '../PickersPopper';
+import { DateInputPropsLike, PrivateWrapperProps } from './WrapperProps';
 
-const DesktopWrapper: React.FC<PrivateWrapperProps & DesktopWrapperProps> = (props) => {
+export interface DesktopWrapperProps extends ExportedPickerPopperProps {
+  children?: React.ReactNode;
+}
+
+export interface InternalDesktopWrapperProps extends DesktopWrapperProps, PrivateWrapperProps {
+  DateInputProps: DateInputPropsLike & { ref?: React.Ref<HTMLDivElement> };
+  KeyboardDateInputComponent: React.JSXElementConstructor<
+    DateInputPropsLike & { ref?: React.Ref<HTMLDivElement> }
+  >;
+}
+
+function DesktopWrapper(props: InternalDesktopWrapperProps) {
   const {
     children,
     DateInputProps,
-    KeyboardDateInputComponent = KeyboardDateInput,
+    KeyboardDateInputComponent,
     onDismiss,
     open,
     PopperProps,
     TransitionComponent,
   } = props;
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const ownInputRef = React.useRef<HTMLInputElement>(null);
+  const inputRef = useForkRef(DateInputProps.inputRef, ownInputRef);
 
   return (
     <WrapperVariantContext.Provider value="desktop">
@@ -23,7 +34,7 @@ const DesktopWrapper: React.FC<PrivateWrapperProps & DesktopWrapperProps> = (pro
       <PickersPopper
         role="dialog"
         open={open}
-        anchorEl={inputRef.current}
+        anchorEl={ownInputRef.current}
         TransitionComponent={TransitionComponent}
         PopperProps={PopperProps}
         onClose={onDismiss}
@@ -32,11 +43,6 @@ const DesktopWrapper: React.FC<PrivateWrapperProps & DesktopWrapperProps> = (pro
       </PickersPopper>
     </WrapperVariantContext.Provider>
   );
-};
-
-DesktopWrapper.propTypes = {
-  onOpen: PropTypes.func,
-  onClose: PropTypes.func,
-} as any;
+}
 
 export default DesktopWrapper;

@@ -1,12 +1,10 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import { createClientRender, createMount, describeConformanceV5 } from 'test/utils';
-import TableCell from './TableCell';
-import classes from './tableCellClasses';
+import { createClientRender, describeConformanceV5 } from 'test/utils';
+import TableCell, { tableCellClasses as classes } from '@material-ui/core/TableCell';
 
 describe('<TableCell />', () => {
   const render = createClientRender();
-  const mount = createMount();
   function renderInTable(node) {
     return render(
       <table>
@@ -21,16 +19,16 @@ describe('<TableCell />', () => {
     classes,
     inheritComponent: 'td',
     render: (node) => {
-      const { container, ...rest } = render(
+      const { container, ...other } = render(
         <table>
           <tbody>
             <tr>{node}</tr>
           </tbody>
         </table>,
       );
-      return { container: container.firstChild.firstChild.firstChild, ...rest };
+      return { container: container.firstChild.firstChild.firstChild, ...other };
     },
-    mount: (node) => {
+    wrapMount: (mount) => (node) => {
       const wrapper = mount(
         <table>
           <tbody>
@@ -50,8 +48,8 @@ describe('<TableCell />', () => {
 
   describe('prop: padding', () => {
     it("doesn't not have a class for padding by default", () => {
-      const { container } = renderInTable(<TableCell padding="default" />);
-      expect(container.querySelector('td')).not.to.have.class(classes.paddingDefault);
+      const { container } = renderInTable(<TableCell padding="normal" />);
+      expect(container.querySelector('td')).not.to.have.class(classes.paddingNormal);
     });
 
     it('has a class when `none`', () => {
@@ -89,5 +87,10 @@ describe('<TableCell />', () => {
   it('should center content', () => {
     const { container } = renderInTable(<TableCell align="center" />);
     expect(container.querySelector('td')).to.have.class(classes.alignCenter);
+  });
+
+  it('should allow the default role (rowheader) to trigger', () => {
+    const { container } = renderInTable(<TableCell component="th" scope="row" />);
+    expect(container.querySelector('th')).not.to.have.attribute('role');
   });
 });

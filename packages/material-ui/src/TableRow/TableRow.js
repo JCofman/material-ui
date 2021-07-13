@@ -1,23 +1,12 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
+import { alpha } from '@material-ui/system';
 import Tablelvl2Context from '../Table/Tablelvl2Context';
-import { alpha } from '../styles/colorManipulator';
-
 import useThemeProps from '../styles/useThemeProps';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import tableRowClasses, { getTableRowUtilityClass } from './tableRowClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...(styleProps.head && styles.head),
-    ...(styleProps.footer && styles.footer),
-  });
-};
 
 const useUtilityClasses = (styleProps) => {
   const { classes, selected, hover, head, footer } = styleProps;
@@ -29,15 +18,15 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getTableRowUtilityClass, classes);
 };
 
-const TableRowRoot = experimentalStyled(
-  'tr',
-  {},
-  {
-    name: 'MuiTableRow',
-    slot: 'Root',
-    overridesResolver,
+const TableRowRoot = styled('tr', {
+  name: 'MuiTableRow',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [styles.root, styleProps.head && styles.head, styleProps.footer && styles.footer];
   },
-)(({ theme }) => ({
+})(({ theme }) => ({
   /* Styles applied to the root element. */
   color: 'inherit',
   display: 'table-row',
@@ -47,8 +36,14 @@ const TableRowRoot = experimentalStyled(
   [`&.${tableRowClasses.hover}:hover`]: {
     backgroundColor: theme.palette.action.hover,
   },
-  '&.Mui-selected, &.Mui-selected:hover': {
-    backgroundColor: alpha(theme.palette.secondary.main, theme.palette.action.selectedOpacity),
+  [`&.${tableRowClasses.selected}`]: {
+    backgroundColor: alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),
+    '&:hover': {
+      backgroundColor: alpha(
+        theme.palette.primary.main,
+        theme.palette.action.selectedOpacity + theme.palette.action.hoverOpacity,
+      ),
+    },
   },
 }));
 
@@ -91,7 +86,7 @@ const TableRow = React.forwardRef(function TableRow(inProps, ref) {
   );
 });
 
-TableRow.propTypes = {
+TableRow.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |

@@ -1,37 +1,13 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
-import experimentalStyled, { shouldForwardProp } from '../styles/experimentalStyled';
+import { alpha } from '@material-ui/system';
+import styled, { rootShouldForwardProp } from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
-import { alpha } from '../styles/colorManipulator';
 import ButtonBase from '../ButtonBase';
 import capitalize from '../utils/capitalize';
 import buttonClasses, { getButtonUtilityClass } from './buttonClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...styles[styleProps.variant],
-    ...styles[`${styleProps.variant}${capitalize(styleProps.color)}`],
-    ...styles[`size${capitalize(styleProps.size)}`],
-    ...styles[`${styleProps.variant}Size${capitalize(styleProps.size)}`],
-    ...(styleProps.color === 'inherit' && styles.colorInherit),
-    ...(styleProps.disableElevation && styles.disableElevation),
-    ...(styleProps.fullWidth && styles.fullWidth),
-    [`& .${buttonClasses.label}`]: styles.label,
-    [`& .${buttonClasses.startIcon}`]: {
-      ...styles.startIcon,
-      ...styles[`iconSize${capitalize(styleProps.size)}`],
-    },
-    [`& .${buttonClasses.endIcon}`]: {
-      ...styles.endIcon,
-      ...styles[`iconSize${capitalize(styleProps.size)}`],
-    },
-  });
-};
 
 const useUtilityClasses = (styleProps) => {
   const { color, disableElevation, fullWidth, size, variant, classes } = styleProps;
@@ -78,15 +54,25 @@ const commonIconStyles = (styleProps) => ({
   }),
 });
 
-const ButtonRoot = experimentalStyled(
-  ButtonBase,
-  { shouldForwardProp: (prop) => shouldForwardProp(prop) || prop === 'classes' },
-  {
-    name: 'MuiButton',
-    slot: 'Root',
-    overridesResolver,
+const ButtonRoot = styled(ButtonBase, {
+  shouldForwardProp: (prop) => rootShouldForwardProp(prop) || prop === 'classes',
+  name: 'MuiButton',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [
+      styles.root,
+      styles[styleProps.variant],
+      styles[`${styleProps.variant}${capitalize(styleProps.color)}`],
+      styles[`size${capitalize(styleProps.size)}`],
+      styles[`${styleProps.variant}Size${capitalize(styleProps.size)}`],
+      styleProps.color === 'inherit' && styles.colorInherit,
+      styleProps.disableElevation && styles.disableElevation,
+      styleProps.fullWidth && styles.fullWidth,
+    ];
   },
-)(
+})(
   ({ theme, styleProps }) => ({
     ...theme.typography.button,
     minWidth: 64,
@@ -151,12 +137,12 @@ const ButtonRoot = experimentalStyled(
         boxShadow: theme.shadows[8],
       }),
     },
-    '&.Mui-focusVisible': {
+    [`&.${buttonClasses.focusVisible}`]: {
       ...(styleProps.variant === 'contained' && {
         boxShadow: theme.shadows[6],
       }),
     },
-    '&.Mui-disabled': {
+    [`&.${buttonClasses.disabled}`]: {
       color: theme.palette.action.disabled,
       ...(styleProps.variant === 'outlined' && {
         border: `1px solid ${theme.palette.action.disabledBackground}`,
@@ -243,40 +229,27 @@ const ButtonRoot = experimentalStyled(
       '&:hover': {
         boxShadow: 'none',
       },
-      '&.Mui-focusVisible': {
+      [`&.${buttonClasses.focusVisible}`]: {
         boxShadow: 'none',
       },
       '&:active': {
         boxShadow: 'none',
       },
-      '&.Mui-disabled': {
+      [`&.${buttonClasses.disabled}`]: {
         boxShadow: 'none',
       },
     },
 );
 
-const ButtonLabel = experimentalStyled(
-  'span',
-  {},
-  {
-    name: 'MuiButton',
-    slot: 'Label',
-  },
-)({
-  width: '100%', // Ensure the correct width for iOS Safari
-  display: 'inherit',
-  alignItems: 'inherit',
-  justifyContent: 'inherit',
-});
+const ButtonStartIcon = styled('span', {
+  name: 'MuiButton',
+  slot: 'StartIcon',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
 
-const ButtonStartIcon = experimentalStyled(
-  'span',
-  {},
-  {
-    name: 'MuiButton',
-    slot: 'StartIcon',
+    return [styles.startIcon, styles[`iconSize${capitalize(styleProps.size)}`]];
   },
-)(({ styleProps }) => ({
+})(({ styleProps }) => ({
   display: 'inherit',
   marginRight: 8,
   marginLeft: -4,
@@ -286,14 +259,15 @@ const ButtonStartIcon = experimentalStyled(
   ...commonIconStyles(styleProps),
 }));
 
-const ButtonEndIcon = experimentalStyled(
-  'span',
-  {},
-  {
-    name: 'MuiButton',
-    slot: 'EndIcon',
+const ButtonEndIcon = styled('span', {
+  name: 'MuiButton',
+  slot: 'EndIcon',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [styles.endIcon, styles[`iconSize${capitalize(styleProps.size)}`]];
   },
-)(({ styleProps }) => ({
+})(({ styleProps }) => ({
   display: 'inherit',
   marginRight: -4,
   marginLeft: 8,
@@ -361,22 +335,14 @@ const Button = React.forwardRef(function Button(inProps, ref) {
       {...other}
       classes={classes}
     >
-      {/*
-       * The inner <span> is required to vertically align the children.
-       * Browsers don't support `display: flex` on a <button> element.
-       * https://github.com/philipwalton/flexbugs/blob/master/README.md#flexbug-9
-       * TODO v5: evaluate if still required for the supported browsers.
-       */}
-      <ButtonLabel className={classes.label} styleProps={styleProps}>
-        {startIcon}
-        {children}
-        {endIcon}
-      </ButtonLabel>
+      {startIcon}
+      {children}
+      {endIcon}
     </ButtonRoot>
   );
 });
 
-Button.propTypes = {
+Button.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -394,7 +360,7 @@ Button.propTypes = {
    * @default 'primary'
    */
   color: PropTypes /* @typescript-to-proptypes-ignore */.oneOfType([
-    PropTypes.oneOf(['inherit', 'primary', 'secondary']),
+    PropTypes.oneOf(['inherit', 'primary', 'secondary', 'success', 'error', 'info', 'warning']),
     PropTypes.string,
   ]),
   /**
@@ -421,7 +387,7 @@ Button.propTypes = {
    * If `true`, the ripple effect is disabled.
    *
    * ⚠️ Without a ripple there is no styling for :focus-visible by default. Be sure
-   * to highlight the element by applying separate styles with the `.Mui-focusedVisible` class.
+   * to highlight the element by applying separate styles with the `.Mui-focusVisible` class.
    * @default false
    */
   disableRipple: PropTypes.bool,

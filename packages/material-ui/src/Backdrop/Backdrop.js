@@ -1,38 +1,27 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { deepmerge } from '@material-ui/utils';
 import { isHostComponent } from '@material-ui/unstyled';
 import BackdropUnstyled, { backdropUnstyledClasses } from '@material-ui/unstyled/BackdropUnstyled';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
 import Fade from '../Fade';
 
 export const backdropClasses = backdropUnstyledClasses;
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...(styleProps.invisible && styles.invisible),
-  });
-};
 
 const extendUtilityClasses = (styleProps) => {
   const { classes } = styleProps;
   return classes;
 };
 
-const BackdropRoot = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiBackdrop',
-    slot: 'Root',
-    overridesResolver,
+const BackdropRoot = styled('div', {
+  name: 'MuiBackdrop',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [styles.root, styleProps.invisible && styles.invisible];
   },
-)(({ styleProps }) => ({
-  // Improve scrollable dialog support.
-  zIndex: -1,
+})(({ styleProps }) => ({
   position: 'fixed',
   display: 'flex',
   alignItems: 'center',
@@ -97,7 +86,7 @@ const Backdrop = React.forwardRef(function Backdrop(inProps, ref) {
   );
 });
 
-Backdrop.propTypes = {
+Backdrop.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |

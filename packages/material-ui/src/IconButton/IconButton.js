@@ -1,25 +1,14 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { chainPropTypes, deepmerge } from '@material-ui/utils';
+import { chainPropTypes } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
-import experimentalStyled from '../styles/experimentalStyled';
+import { alpha } from '@material-ui/system';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
-import { alpha } from '../styles/colorManipulator';
 import ButtonBase from '../ButtonBase';
 import capitalize from '../utils/capitalize';
 import iconButtonClasses, { getIconButtonUtilityClass } from './iconButtonClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...(styleProps.color !== 'default' && styles[`color${capitalize(styleProps.color)}`]),
-    ...(styleProps.edge && styles[`edge${capitalize(styleProps.edge)}`]),
-    ...styles[`size${capitalize(styleProps.size)}`],
-    [`& .${iconButtonClasses.label}`]: styles.label,
-  });
-};
 
 const useUtilityClasses = (styleProps) => {
   const { classes, disabled, color, edge, size } = styleProps;
@@ -32,27 +21,31 @@ const useUtilityClasses = (styleProps) => {
       edge && `edge${capitalize(edge)}`,
       `size${capitalize(size)}`,
     ],
-    label: ['label'],
   };
 
   return composeClasses(slots, getIconButtonUtilityClass, classes);
 };
 
-const IconButtonRoot = experimentalStyled(
-  ButtonBase,
-  {},
-  {
-    name: 'MuiIconButton',
-    slot: 'Root',
-    overridesResolver,
+const IconButtonRoot = styled(ButtonBase, {
+  name: 'MuiIconButton',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [
+      styles.root,
+      styleProps.color !== 'default' && styles[`color${capitalize(styleProps.color)}`],
+      styleProps.edge && styles[`edge${capitalize(styleProps.edge)}`],
+      styles[`size${capitalize(styleProps.size)}`],
+    ];
   },
-)(
+})(
   ({ theme, styleProps }) => ({
     /* Styles applied to the root element. */
     textAlign: 'center',
     flex: '0 0 auto',
     fontSize: theme.typography.pxToRem(24),
-    padding: 12,
+    padding: 8,
     borderRadius: '50%',
     overflow: 'visible', // Explicitly set the default value to solve a bug on IE11.
     color: theme.palette.action.active,
@@ -80,32 +73,28 @@ const IconButtonRoot = experimentalStyled(
     ...(styleProps.color === 'inherit' && {
       color: 'inherit',
     }),
-    /* Styles applied to the root element if `color="primary"`. */
-    ...(styleProps.color === 'primary' && {
-      color: theme.palette.primary.main,
-      '&:hover': {
-        backgroundColor: alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
-        // Reset on touch devices, it doesn't add specificity
-        '@media (hover: none)': {
-          backgroundColor: 'transparent',
+    ...(styleProps.color !== 'inherit' &&
+      styleProps.color !== 'default' && {
+        color: theme.palette[styleProps.color].main,
+        '&:hover': {
+          backgroundColor: alpha(
+            theme.palette[styleProps.color].main,
+            theme.palette.action.hoverOpacity,
+          ),
+          // Reset on touch devices, it doesn't add specificity
+          '@media (hover: none)': {
+            backgroundColor: 'transparent',
+          },
         },
-      },
-    }),
-    /* Styles applied to the root element if `color="secondary"`. */
-    ...(styleProps.color === 'secondary' && {
-      color: theme.palette.secondary.main,
-      '&:hover': {
-        backgroundColor: alpha(theme.palette.secondary.main, theme.palette.action.hoverOpacity),
-        // Reset on touch devices, it doesn't add specificity
-        '@media (hover: none)': {
-          backgroundColor: 'transparent',
-        },
-      },
-    }),
+      }),
     /* Styles applied to the root element if `size="small"`. */
     ...(styleProps.size === 'small' && {
-      padding: 3,
+      padding: 5,
       fontSize: theme.typography.pxToRem(18),
+    }),
+    ...(styleProps.size === 'large' && {
+      padding: 12,
+      fontSize: theme.typography.pxToRem(28),
     }),
     /* Styles applied to the root element if `disabled={true}`. */
     [`&.${iconButtonClasses.disabled}`]: {
@@ -114,21 +103,6 @@ const IconButtonRoot = experimentalStyled(
     },
   }),
 );
-
-const IconButtonLabel = experimentalStyled(
-  'span',
-  {},
-  {
-    name: 'MuiIconButton',
-    slot: 'Label',
-  },
-)({
-  /* Styles applied to the children container element. */
-  width: '100%',
-  display: 'flex',
-  alignItems: 'inherit',
-  justifyContent: 'inherit',
-});
 
 /**
  * Refer to the [Icons](/components/icons/) section of the documentation
@@ -168,14 +142,12 @@ const IconButton = React.forwardRef(function IconButton(inProps, ref) {
       styleProps={styleProps}
       {...other}
     >
-      <IconButtonLabel className={classes.label} styleProps={styleProps}>
-        {children}
-      </IconButtonLabel>
+      {children}
     </IconButtonRoot>
   );
 });
 
-IconButton.propTypes = {
+IconButton.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -212,7 +184,19 @@ IconButton.propTypes = {
    * The color of the component. It supports those theme colors that make sense for this component.
    * @default 'default'
    */
-  color: PropTypes.oneOf(['default', 'inherit', 'primary', 'secondary']),
+  color: PropTypes /* @typescript-to-proptypes-ignore */.oneOfType([
+    PropTypes.oneOf([
+      'inherit',
+      'default',
+      'primary',
+      'secondary',
+      'error',
+      'info',
+      'success',
+      'warning',
+    ]),
+    PropTypes.string,
+  ]),
   /**
    * If `true`, the component is disabled.
    * @default false
@@ -227,7 +211,7 @@ IconButton.propTypes = {
    * If `true`, the ripple effect is disabled.
    *
    * ⚠️ Without a ripple there is no styling for :focus-visible by default. Be sure
-   * to highlight the element by applying separate styles with the `.Mui-focusedVisible` class.
+   * to highlight the element by applying separate styles with the `.Mui-focusVisible` class.
    * @default false
    */
   disableRipple: PropTypes.bool,
@@ -244,7 +228,10 @@ IconButton.propTypes = {
    * `small` is equivalent to the dense button styling.
    * @default 'medium'
    */
-  size: PropTypes.oneOf(['medium', 'small']),
+  size: PropTypes /* @typescript-to-proptypes-ignore */.oneOfType([
+    PropTypes.oneOf(['small', 'medium', 'large']),
+    PropTypes.string,
+  ]),
   /**
    * The system prop that allows defining system overrides as well as additional CSS styles.
    */

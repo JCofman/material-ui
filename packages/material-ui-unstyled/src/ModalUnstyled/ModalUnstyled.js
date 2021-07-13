@@ -273,7 +273,6 @@ const ModalUnstyled = React.forwardRef(function ModalUnstyled(props, ref) {
           disableEnforceFocus={disableEnforceFocus}
           disableAutoFocus={disableAutoFocus}
           disableRestoreFocus={disableRestoreFocus}
-          getDoc={getDoc}
           isEnabled={isTopModal}
           open={open}
         >
@@ -284,7 +283,7 @@ const ModalUnstyled = React.forwardRef(function ModalUnstyled(props, ref) {
   );
 });
 
-ModalUnstyled.propTypes = {
+ModalUnstyled.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |

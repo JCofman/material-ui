@@ -1,20 +1,11 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
 import ListContext from '../List/ListContext';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
 import { getListItemAvatarUtilityClass } from './listItemAvatarClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...(styleProps.alignItems === 'flex-start' && styles.alignItemsFlexStart),
-  });
-};
 
 const useUtilityClasses = (styleProps) => {
   const { alignItems, classes } = styleProps;
@@ -26,15 +17,15 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getListItemAvatarUtilityClass, classes);
 };
 
-const ListItemAvatarRoot = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiListItemAvatar',
-    slot: 'Root',
-    overridesResolver,
+const ListItemAvatarRoot = styled('div', {
+  name: 'MuiListItemAvatar',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [styles.root, styleProps.alignItems === 'flex-start' && styles.alignItemsFlexStart];
   },
-)(({ styleProps }) => ({
+})(({ styleProps }) => ({
   /* Styles applied to the root element. */
   minWidth: 56,
   flexShrink: 0,
@@ -68,7 +59,7 @@ const ListItemAvatar = React.forwardRef(function ListItemAvatar(inProps, ref) {
   );
 });
 
-ListItemAvatar.propTypes = {
+ListItemAvatar.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |

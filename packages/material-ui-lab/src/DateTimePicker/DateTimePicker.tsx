@@ -1,133 +1,24 @@
 import * as React from 'react';
+import { useThemeProps } from '@material-ui/core/styles';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
-import { useUtils } from '../internal/pickers/hooks/useUtils';
-import DateTimePickerToolbar from './DateTimePickerToolbar';
-import { ExportedClockPickerProps } from '../ClockPicker/ClockPicker';
-import { ResponsiveWrapper } from '../internal/pickers/wrappers/ResponsiveWrapper';
-import { pick12hOr24hFormat } from '../internal/pickers/text-field-helper';
-import {
-  useParsedDate,
-  OverrideParsableDateProps,
-} from '../internal/pickers/hooks/date-helpers-hooks';
-import { ExportedDayPickerProps } from '../DayPicker/DayPicker';
-import {
-  makePickerWithState,
-  SharedPickerProps,
-} from '../internal/pickers/Picker/makePickerWithState';
-import { SomeWrapper } from '../internal/pickers/wrappers/Wrapper';
-import { WithViewsProps, AllSharedPickerProps } from '../internal/pickers/Picker/SharedPickerProps';
-import { DateAndTimeValidationError, validateDateAndTime } from './date-time-utils';
-import { makeValidationHook, ValidationProps } from '../internal/pickers/hooks/useValidation';
-import {
-  ParsableDate,
-  defaultMinDate,
-  defaultMaxDate,
-} from '../internal/pickers/constants/prop-types';
+import DesktopDateTimePicker, { DesktopDateTimePickerProps } from '../DesktopDateTimePicker';
+import MobileDateTimePicker, { MobileDateTimePickerProps } from '../MobileDateTimePicker';
 
-type DateTimePickerViewsProps<TDate> = OverrideParsableDateProps<
-  TDate,
-  ExportedClockPickerProps<TDate> & ExportedDayPickerProps<TDate>,
-  'minDate' | 'maxDate' | 'minTime' | 'maxTime'
->;
-
-export interface BaseDateTimePickerProps<TDate>
-  extends WithViewsProps<'year' | 'date' | 'month' | 'hours' | 'minutes'>,
-    ValidationProps<DateAndTimeValidationError, ParsableDate>,
-    DateTimePickerViewsProps<TDate> {
+export interface DateTimePickerProps<TDate = unknown>
+  extends DesktopDateTimePickerProps<TDate>,
+    MobileDateTimePickerProps<TDate> {
   /**
-   * To show tabs.
+   * CSS media query when `Mobile` mode will be changed to `Desktop`.
+   * @default '@media (pointer: fine)'
+   * @example '@media (min-width: 720px)' or theme.breakpoints.up("sm")
    */
-  hideTabs?: boolean;
-  /**
-   * Date tab icon.
-   */
-  dateRangeIcon?: React.ReactNode;
-  /**
-   * Time tab icon.
-   */
-  timeIcon?: React.ReactNode;
-  /**
-   * Minimal selectable moment of time with binding to date, to set min time in each day use `minTime`.
-   */
-  minDateTime?: ParsableDate<TDate>;
-  /**
-   * Minimal selectable moment of time with binding to date, to set max time in each day use `maxTime`.
-   */
-  maxDateTime?: ParsableDate<TDate>;
-  /**
-   * Date format, that is displaying in toolbar.
-   */
-  toolbarFormat?: string;
+  desktopModeMediaQuery?: string;
 }
 
-function useInterceptProps({
-  ampm,
-  inputFormat,
-  maxDate: __maxDate = defaultMaxDate,
-  maxDateTime: __maxDateTime,
-  maxTime: __maxTime,
-  minDate: __minDate = defaultMinDate,
-  minDateTime: __minDateTime,
-  minTime: __minTime,
-  openTo = 'date',
-  orientation = 'portrait',
-  views = ['year', 'date', 'hours', 'minutes'],
-  ...other
-}: BaseDateTimePickerProps<unknown> & AllSharedPickerProps) {
-  const utils = useUtils();
-  const minTime = useParsedDate(__minTime);
-  const maxTime = useParsedDate(__maxTime);
-  const minDate = useParsedDate(__minDate);
-  const maxDate = useParsedDate(__maxDate);
-  const minDateTime = useParsedDate(__minDateTime);
-  const maxDateTime = useParsedDate(__maxDateTime);
-  const willUseAmPm = ampm ?? utils.is12HourCycleInCurrentLocale();
-
-  if (orientation !== 'portrait') {
-    throw new Error('We are not supporting custom orientation for DateTimePicker yet :(');
-  }
-
-  return {
-    openTo,
-    views,
-    ampm: willUseAmPm,
-    ampmInClock: true,
-    orientation,
-    showToolbar: true,
-    showTabs: true,
-    allowSameDateSelection: true,
-    minDate: minDateTime || minDate,
-    minTime: minDateTime || minTime,
-    maxDate: maxDateTime || maxDate,
-    maxTime: maxDateTime || maxTime,
-    disableIgnoringDatePartForTimeValidation: Boolean(minDateTime || maxDateTime),
-    acceptRegex: willUseAmPm ? /[\dap]/gi : /\d/gi,
-    mask: '__/__/____ __:__',
-    disableMaskedInput: willUseAmPm,
-    inputFormat: pick12hOr24hFormat(inputFormat, willUseAmPm, {
-      localized: utils.formats.keyboardDateTime,
-      '12h': utils.formats.keyboardDateTime12h,
-      '24h': utils.formats.keyboardDateTime24h,
-    }),
-    ...other,
-  };
-}
-
-const useValidation = makeValidationHook<
-  DateAndTimeValidationError,
-  ParsableDate,
-  BaseDateTimePickerProps<unknown>
->(validateDateAndTime);
-
-export const dateTimePickerConfig = {
-  useInterceptProps,
-  useValidation,
-  DefaultToolbarComponent: DateTimePickerToolbar,
-};
-
-export type DateTimePickerGenericComponent<TWrapper extends SomeWrapper> = (<TDate>(
-  props: BaseDateTimePickerProps<TDate> & SharedPickerProps<TDate, TWrapper>,
-) => JSX.Element) & { propTypes?: unknown };
+type DateTimePickerComponent = (<TDate>(
+  props: DateTimePickerProps<TDate> & React.RefAttributes<HTMLDivElement>,
+) => JSX.Element) & { propTypes?: any };
 
 /**
  *
@@ -139,17 +30,50 @@ export type DateTimePickerGenericComponent<TWrapper extends SomeWrapper> = (<TDa
  *
  * - [DateTimePicker API](https://material-ui.com/api/date-time-picker/)
  */
-// @typescript-to-proptypes-generate
-const DateTimePicker = makePickerWithState<BaseDateTimePickerProps<unknown>>(ResponsiveWrapper, {
-  name: 'MuiDateTimePicker',
-  ...dateTimePickerConfig,
-}) as DateTimePickerGenericComponent<typeof ResponsiveWrapper>;
+const DateTimePicker = React.forwardRef(function DateTimePicker<TDate>(
+  inProps: DateTimePickerProps<TDate>,
+  ref: React.Ref<HTMLDivElement>,
+) {
+  const props = useThemeProps({ props: inProps, name: 'MuiDateTimePicker' });
+  const {
+    cancelText,
+    clearable,
+    clearText,
+    desktopModeMediaQuery = '@media (pointer: fine)',
+    DialogProps,
+    okText,
+    PopperProps,
+    showTodayButton,
+    todayText,
+    TransitionComponent,
+    ...other
+  } = props;
 
-if (process.env.NODE_ENV !== 'production') {
-  (DateTimePicker as any).displayName = 'DateTimePicker';
-}
+  const isDesktop = useMediaQuery(desktopModeMediaQuery);
 
-DateTimePicker.propTypes = {
+  return isDesktop ? (
+    <DesktopDateTimePicker
+      ref={ref}
+      PopperProps={PopperProps}
+      TransitionComponent={TransitionComponent}
+      {...other}
+    />
+  ) : (
+    <MobileDateTimePicker
+      ref={ref}
+      cancelText={cancelText}
+      clearable={clearable}
+      clearText={clearText}
+      DialogProps={DialogProps}
+      okText={okText}
+      showTodayButton={showTodayButton}
+      todayText={todayText}
+      {...other}
+    />
+  );
+}) as DateTimePickerComponent;
+
+DateTimePicker.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit TypeScript types and run "yarn proptypes"  |
@@ -159,11 +83,6 @@ DateTimePicker.propTypes = {
    * @default /\dap/gi
    */
   acceptRegex: PropTypes.instanceOf(RegExp),
-  /**
-   * Enables keyboard listener for moving between days in calendar.
-   * Defaults to `true` unless the `ClockPicker` is used inside a `Static*` picker component.
-   */
-  allowKeyboardControl: PropTypes.bool,
   /**
    * If `true`, `onChange` is fired on click even if the same date is selected.
    * @default false
@@ -180,8 +99,12 @@ DateTimePicker.propTypes = {
    */
   ampmInClock: PropTypes.bool,
   /**
+   * @ignore
+   */
+  autoFocus: PropTypes.bool,
+  /**
    * Cancel text message.
-   * @default "CANCEL"
+   * @default 'Cancel'
    */
   cancelText: PropTypes.node,
   /**
@@ -199,7 +122,7 @@ DateTimePicker.propTypes = {
   clearable: PropTypes.bool,
   /**
    * Clear text message.
-   * @default "CLEAR"
+   * @default 'Clear'
    */
   clearText: PropTypes.node,
   /**
@@ -210,6 +133,7 @@ DateTimePicker.propTypes = {
   components: PropTypes.shape({
     LeftArrowButton: PropTypes.elementType,
     LeftArrowIcon: PropTypes.elementType,
+    OpenPickerIcon: PropTypes.elementType,
     RightArrowButton: PropTypes.elementType,
     RightArrowIcon: PropTypes.elementType,
     SwitchViewButton: PropTypes.elementType,
@@ -221,13 +145,6 @@ DateTimePicker.propTypes = {
    */
   componentsProps: PropTypes.object,
   /**
-   * Allows to pass configured date-io adapter directly. More info [here](https://next.material-ui-pickers.dev/guides/date-adapter-passing).
-   * ```jsx
-   * dateAdapter={new AdapterDateFns({ locale: ruLocale })}
-   * ```
-   */
-  dateAdapter: PropTypes.object,
-  /**
    * Date tab icon.
    */
   dateRangeIcon: PropTypes.node,
@@ -237,8 +154,8 @@ DateTimePicker.propTypes = {
   defaultCalendarMonth: PropTypes.any,
   /**
    * CSS media query when `Mobile` mode will be changed to `Desktop`.
-   * @default "@media (pointer: fine)"
-   * @example "@media (min-width: 720px)" or theme.breakpoints.up("sm")
+   * @default '@media (pointer: fine)'
+   * @example '@media (min-width: 720px)' or theme.breakpoints.up("sm")
    */
   desktopModeMediaQuery: PropTypes.string,
   /**
@@ -285,10 +202,13 @@ DateTimePicker.propTypes = {
   /**
    * Accessible text that helps user to understand which time and view is selected.
    * @default <TDate extends any>(
-   *   view: 'hours' | 'minutes' | 'seconds',
-   *   time: TDate,
+   *   view: ClockView,
+   *   time: TDate | null,
    *   adapter: MuiPickersAdapter<TDate>,
-   * ) => `Select ${view}. Selected time is ${adapter.format(time, 'fullTime')}`
+   * ) =>
+   *   `Select ${view}. ${
+   *     time === null ? 'No time selected' : `Selected time is ${adapter.format(time, 'fullTime')}`
+   *   }`
    */
   getClockLabelText: PropTypes.func,
   /**
@@ -320,6 +240,15 @@ DateTimePicker.propTypes = {
    * @ignore
    */
   InputProps: PropTypes.object,
+  /**
+   * Pass a ref to the `input` element.
+   */
+  inputRef: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({
+      current: PropTypes.object,
+    }),
+  ]),
   /**
    * @ignore
    */
@@ -403,7 +332,7 @@ DateTimePicker.propTypes = {
   minutesStep: PropTypes.number,
   /**
    * Ok button text.
-   * @default "OK"
+   * @default 'OK'
    */
   okText: PropTypes.node,
   /**
@@ -454,13 +383,9 @@ DateTimePicker.propTypes = {
    */
   OpenPickerButtonProps: PropTypes.object,
   /**
-   * Icon displaying for open picker button.
-   */
-  openPickerIcon: PropTypes.node,
-  /**
    * First view to show.
    */
-  openTo: PropTypes.oneOf(['date', 'hours', 'minutes', 'month', 'seconds', 'year']),
+  openTo: PropTypes.oneOf(['day', 'hours', 'minutes', 'month', 'year']),
   /**
    * Force rendering in particular orientation.
    */
@@ -538,11 +463,12 @@ DateTimePicker.propTypes = {
   timeIcon: PropTypes.node,
   /**
    * Today text message.
-   * @default "TODAY"
+   * @default 'Today'
    */
   todayText: PropTypes.node,
   /**
    * Component that will replace default toolbar renderer.
+   * @default DateTimePickerToolbar
    */
   ToolbarComponent: PropTypes.elementType,
   /**
@@ -551,12 +477,12 @@ DateTimePicker.propTypes = {
   toolbarFormat: PropTypes.string,
   /**
    * Mobile picker date value placeholder, displaying if `value` === `null`.
-   * @default "–"
+   * @default '–'
    */
   toolbarPlaceholder: PropTypes.node,
   /**
    * Mobile picker title, displaying in the toolbar.
-   * @default "SELECT DATE"
+   * @default 'Select date & time'
    */
   toolbarTitle: PropTypes.node,
   /**
@@ -576,10 +502,8 @@ DateTimePicker.propTypes = {
    * Array of views to show.
    */
   views: PropTypes.arrayOf(
-    PropTypes.oneOf(['date', 'hours', 'minutes', 'month', 'year']).isRequired,
+    PropTypes.oneOf(['day', 'hours', 'minutes', 'month', 'year']).isRequired,
   ),
 } as any;
-
-export type DateTimePickerProps = React.ComponentProps<typeof DateTimePicker>;
 
 export default DateTimePicker;

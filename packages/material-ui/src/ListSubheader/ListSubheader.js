@@ -1,23 +1,11 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
 import capitalize from '../utils/capitalize';
 import { getListSubheaderUtilityClass } from './listSubheaderClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...(styleProps.color !== 'default' && styles[`color${capitalize(styleProps.color)}`]),
-    ...(!styleProps.disableGutters && styles.gutters),
-    ...(styleProps.inset && styles.inset),
-    ...(!styleProps.disableSticky && styles.sticky),
-  });
-};
 
 const useUtilityClasses = (styleProps) => {
   const { classes, color, disableGutters, inset, disableSticky } = styleProps;
@@ -35,15 +23,21 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getListSubheaderUtilityClass, classes);
 };
 
-const ListSubheaderRoot = experimentalStyled(
-  'li',
-  {},
-  {
-    name: 'MuiListSubheader',
-    slot: 'Root',
-    overridesResolver,
+const ListSubheaderRoot = styled('li', {
+  name: 'MuiListSubheader',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [
+      styles.root,
+      styleProps.color !== 'default' && styles[`color${capitalize(styleProps.color)}`],
+      !styleProps.disableGutters && styles.gutters,
+      styleProps.inset && styles.inset,
+      !styleProps.disableSticky && styles.sticky,
+    ];
   },
-)(({ theme, styleProps }) => ({
+})(({ theme, styleProps }) => ({
   /* Styles applied to the root element. */
   boxSizing: 'border-box',
   lineHeight: '48px',
@@ -74,7 +68,7 @@ const ListSubheaderRoot = experimentalStyled(
     position: 'sticky',
     top: 0,
     zIndex: 1,
-    backgroundColor: 'inherit',
+    backgroundColor: theme.palette.background.paper,
   }),
 }));
 
@@ -112,7 +106,7 @@ const ListSubheader = React.forwardRef(function ListSubheader(inProps, ref) {
   );
 });
 
-ListSubheader.propTypes = {
+ListSubheader.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |

@@ -1,20 +1,11 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
 import ListContext from '../List/ListContext';
 import { getListItemSecondaryActionClassesUtilityClass } from './listItemSecondaryActionClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...(styleProps.disableGutters && styles.disableGutters),
-  });
-};
 
 const useUtilityClasses = (styleProps) => {
   const { disableGutters, classes } = styleProps;
@@ -26,15 +17,15 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getListItemSecondaryActionClassesUtilityClass, classes);
 };
 
-const ListItemSecondaryActionRoot = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiListItemSecondaryAction',
-    slot: 'Root',
-    overridesResolver,
+const ListItemSecondaryActionRoot = styled('div', {
+  name: 'MuiListItemSecondaryAction',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [styles.root, styleProps.disableGutters && styles.disableGutters];
   },
-)(({ styleProps }) => ({
+})(({ styleProps }) => ({
   position: 'absolute',
   right: 16,
   top: '50%',
@@ -64,7 +55,7 @@ const ListItemSecondaryAction = React.forwardRef(function ListItemSecondaryActio
   );
 });
 
-ListItemSecondaryAction.propTypes = {
+ListItemSecondaryAction.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |

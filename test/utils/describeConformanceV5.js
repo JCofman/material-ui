@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import { expect } from 'chai';
 import * as React from 'react';
-import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import {
   testComponentProp,
   testClassName,
@@ -11,6 +11,31 @@ import {
   testReactTestRenderer,
   testRootClass,
 } from './describeConformance';
+import createMount from './createMount';
+
+/**
+ * @typedef {Object} ConformanceOptions
+ * @property {() => void} [after]
+ * @property {object} classes - `classes` of the component provided by `@material-ui/styled-engine`
+ * @property {import('react').ElementType} [inheritComponent] - The element type that receives spread props or `undefined` if props are not spread.
+ * @property {string} muiName
+ * @property {(node: React.ReactElement) => import('./createClientRender').MuiRenderResult} [render] - Should be a return value from createClientRender
+ * @property {Array<keyof typeof fullSuite>} [only] - If specified only run the tests listed
+ * @property {any} refInstanceof - `ref` will be an instanceof this constructor.
+ * @property {Array<keyof typeof fullSuite>} [skip] - Skip the specified tests
+ * @property {string} [testComponentsRootPropWith] - The host component that should be rendered instead.
+ * @property {{ slotName: string, slotClassName: string }} [testDeepOverrides]
+ * @property {{ prop?: string, value?: any, styleKey: string }} [testStateOverrides]
+ * @property {object} [testVariantProps]
+ * @property {(mount: (node: React.ReactNode) => import('enzyme').ReactWrapper) => (node: React.ReactNode) => import('enzyme').ReactWrapper} [wrapMount] - You can use this option to mount the component with enzyme in a WrapperComponent. Make sure the returned node corresponds to the input node and not the wrapper component.
+ */
+
+function throwMissingPropError(field) {
+  throw new Error(`missing "${field}" in options
+
+  > describeConformanceV5(element, () => options)
+`);
+}
 
 /**
  * Material-UI components have a `components` prop that allows rendering a different
@@ -19,7 +44,7 @@ import {
  * @param {() => ConformanceOptions} getOptions
  */
 function testComponentsProp(element, getOptions) {
-  describe('prop: components', () => {
+  describe('prop components:', () => {
     it('can render another root component with the `components` prop', () => {
       const { mount, testComponentsRootPropWith: component = 'em' } = getOptions();
 
@@ -37,11 +62,20 @@ function testComponentsProp(element, getOptions) {
  * @param {() => ConformanceOptions} getOptions
  */
 function testThemeDefaultProps(element, getOptions) {
-  describe('theme: default components', () => {
+  describe('theme default components:', () => {
     it("respect theme's defaultProps", () => {
       const testProp = 'data-id';
       const { muiName, render } = getOptions();
-      const theme = createMuiTheme({
+
+      if (!muiName) {
+        throwMissingPropError('muiName');
+      }
+
+      if (!render) {
+        throwMissingPropError('render');
+      }
+
+      const theme = createTheme({
         components: {
           [muiName]: {
             defaultProps: {
@@ -65,7 +99,7 @@ function testThemeDefaultProps(element, getOptions) {
  * @param {() => ConformanceOptions} getOptions
  */
 function testThemeStyleOverrides(element, getOptions) {
-  describe('theme: style overrides', () => {
+  describe('theme style overrides:', () => {
     it("respect theme's styleOverrides custom state", function test() {
       if (/jsdom/.test(window.navigator.userAgent)) {
         this.skip();
@@ -76,11 +110,19 @@ function testThemeStyleOverrides(element, getOptions) {
         return;
       }
 
+      if (!muiName) {
+        throwMissingPropError('muiName');
+      }
+
+      if (!render) {
+        throwMissingPropError('render');
+      }
+
       const testStyle = {
         marginTop: '13px',
       };
 
-      const theme = createMuiTheme({
+      const theme = createTheme({
         components: {
           [muiName]: {
             styleOverrides: {
@@ -106,27 +148,32 @@ function testThemeStyleOverrides(element, getOptions) {
         this.skip();
       }
 
-      const { muiName, testDeepOverrides, render } = getOptions();
+      const {
+        muiName,
+        testDeepOverrides,
+        testRootOverrides = { slotName: 'root' },
+        render,
+      } = getOptions();
 
       const testStyle = {
-        marginTop: '13px',
+        mixBlendMode: 'darken',
       };
 
-      const theme = createMuiTheme({
+      const theme = createTheme({
         components: {
           [muiName]: {
             styleOverrides: {
-              root: {
+              [testRootOverrides.slotName]: {
                 ...testStyle,
                 ...(testDeepOverrides && {
                   [`& .${testDeepOverrides.slotClassName}`]: {
-                    marginBottom: '10px',
+                    fontVariantCaps: 'all-petite-caps',
                   },
                 }),
               },
               ...(testDeepOverrides && {
                 [testDeepOverrides.slotName]: {
-                  marginTop: '10px',
+                  mixBlendMode: 'darken',
                 },
               }),
             },
@@ -134,26 +181,81 @@ function testThemeStyleOverrides(element, getOptions) {
         },
       });
 
-      const { container } = render(<ThemeProvider theme={theme}>{element}</ThemeProvider>);
+      const { container, setProps } = render(
+        <ThemeProvider theme={theme}>{element}</ThemeProvider>,
+      );
 
-      expect(container.firstChild).to.toHaveComputedStyle(testStyle);
+      if (testRootOverrides.slotClassName) {
+        expect(
+          document.querySelector(`.${testRootOverrides.slotClassName}`),
+        ).to.toHaveComputedStyle(testStyle);
+      } else {
+        expect(container.firstChild).to.toHaveComputedStyle(testStyle);
+      }
 
       if (testDeepOverrides) {
         expect(
-          container.firstChild.getElementsByClassName(testDeepOverrides.slotClassName)[0],
+          document.querySelector(`.${testDeepOverrides.slotClassName}`),
         ).to.toHaveComputedStyle({
-          marginBottom: '10px',
-          marginTop: '10px',
+          fontVariantCaps: 'all-petite-caps',
+          mixBlendMode: 'darken',
         });
+
+        const themeWithoutRootOverrides = createTheme({
+          components: {
+            [muiName]: {
+              styleOverrides: {
+                ...(testDeepOverrides && {
+                  [testDeepOverrides.slotName]: testStyle,
+                }),
+              },
+            },
+          },
+        });
+
+        setProps({ theme: themeWithoutRootOverrides });
+        expect(
+          document.querySelector(`.${testDeepOverrides.slotClassName}`),
+        ).to.toHaveComputedStyle(testStyle);
+      }
+    });
+
+    it('overrideStyles does not replace each other in slots', function test() {
+      if (/jsdom/.test(window.navigator.userAgent)) {
+        this.skip();
       }
 
-      const themeWithoutRootOverrides = createMuiTheme({
+      const { muiName, classes, testStateOverrides, render } = getOptions();
+
+      const classKeys = Object.keys(classes);
+
+      // only test the component that has `root` and other classKey
+      if (!testStateOverrides || !classKeys.includes('root') || classKeys.length === 1) {
+        return;
+      }
+
+      // `styleKey` in some tests is `foo` or `bar`, so need to check if it is a valid classKey.
+      const isStyleKeyExists = classKeys.indexOf(testStateOverrides.styleKey) !== -1;
+
+      if (!isStyleKeyExists) {
+        return;
+      }
+
+      const theme = createTheme({
         components: {
           [muiName]: {
             styleOverrides: {
-              ...(testDeepOverrides && {
-                [testDeepOverrides.slotName]: {
-                  marginTop: '10px',
+              root: {
+                [`&.${classes.root}`]: {
+                  filter: 'blur(1px)',
+                  mixBlendMode: 'darken',
+                },
+              },
+              ...(testStateOverrides && {
+                [testStateOverrides.styleKey]: {
+                  [`&.${classes.root}`]: {
+                    mixBlendMode: 'color',
+                  },
                 },
               }),
             },
@@ -161,19 +263,18 @@ function testThemeStyleOverrides(element, getOptions) {
         },
       });
 
-      const { container: containerWithoutRootOverrides } = render(
-        <ThemeProvider theme={themeWithoutRootOverrides}>{element}</ThemeProvider>,
+      render(
+        <ThemeProvider theme={theme}>
+          {React.cloneElement(element, {
+            [testStateOverrides.prop]: testStateOverrides.value,
+          })}
+        </ThemeProvider>,
       );
 
-      if (testDeepOverrides) {
-        expect(
-          containerWithoutRootOverrides.firstChild.getElementsByClassName(
-            testDeepOverrides.slotClassName,
-          )[0],
-        ).to.toHaveComputedStyle({
-          marginTop: '10px',
-        });
-      }
+      expect(document.querySelector(`.${classes.root}`)).toHaveComputedStyle({
+        filter: 'blur(1px)', // still valid in root
+        mixBlendMode: 'color', // overridden by `styleKey`
+      });
     });
   });
 }
@@ -185,19 +286,31 @@ function testThemeStyleOverrides(element, getOptions) {
  * @param {() => ConformanceOptions} getOptions
  */
 function testThemeVariants(element, getOptions) {
-  describe('theme: variants', () => {
+  describe('theme variants:', () => {
     it("respect theme's variants", function test() {
       if (/jsdom/.test(window.navigator.userAgent)) {
         this.skip();
       }
 
-      const { muiName, testVariantProps = {}, render } = getOptions();
+      const { muiName, testVariantProps, render } = getOptions();
+
+      if (!testVariantProps) {
+        throw new Error('missing testVariantProps');
+      }
+
+      if (!muiName) {
+        throwMissingPropError('muiName');
+      }
+
+      if (!render) {
+        throwMissingPropError('render');
+      }
 
       const testStyle = {
         marginTop: '13px',
       };
 
-      const theme = createMuiTheme({
+      const theme = createTheme({
         components: {
           [muiName]: {
             variants: [
@@ -243,16 +356,33 @@ const fullSuite = {
  * @param {() => ConformanceOptions} getOptions
  */
 export default function describeConformanceV5(minimalElement, getOptions) {
-  const { after: runAfterHook = () => {}, only = Object.keys(fullSuite), skip = [] } = getOptions();
-
   describe('Material-UI component API', () => {
+    const {
+      after: runAfterHook = () => {},
+      only = Object.keys(fullSuite),
+      skip = [],
+      wrapMount,
+    } = getOptions();
+
+    const filteredTests = Object.keys(fullSuite).filter(
+      (testKey) => only.indexOf(testKey) !== -1 && skip.indexOf(testKey) === -1,
+    );
+
+    const baseMount = createMount();
+    const mount = wrapMount !== undefined ? wrapMount(baseMount) : baseMount;
+
     after(runAfterHook);
 
-    Object.keys(fullSuite)
-      .filter((testKey) => only.indexOf(testKey) !== -1 && skip.indexOf(testKey) === -1)
-      .forEach((testKey) => {
-        const test = fullSuite[testKey];
-        test(minimalElement, getOptions);
-      });
+    function getTestOptions() {
+      return {
+        ...getOptions(),
+        mount,
+      };
+    }
+
+    filteredTests.forEach((testKey) => {
+      const test = fullSuite[testKey];
+      test(minimalElement, getTestOptions);
+    });
   });
 }

@@ -1,18 +1,17 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import { createMount, createClientRender, describeConformanceV5 } from 'test/utils';
-import ListItemSecondaryAction from './ListItemSecondaryAction';
-import ListItem from '../ListItem';
-import classes from './listItemSecondaryActionClasses';
+import { createClientRender, describeConformanceV5 } from 'test/utils';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemSecondaryAction, {
+  listItemSecondaryActionClasses as classes,
+} from '@material-ui/core/ListItemSecondaryAction';
 
 describe('<ListItemSecondaryAction />', () => {
   const render = createClientRender();
-  const mount = createMount();
 
   describeConformanceV5(<ListItemSecondaryAction />, () => ({
     classes,
     inheritComponent: 'div',
-    mount,
     render,
     refInstanceof: window.HTMLDivElement,
     muiName: 'MuiListItemSecondaryAction',

@@ -2,28 +2,32 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { unstable_composeClasses as composeClasses, isHostComponent } from '@material-ui/unstyled';
-import { deepmerge, chainPropTypes, elementTypeAcceptingRef } from '@material-ui/utils';
-import experimentalStyled from '../styles/experimentalStyled';
+import { chainPropTypes, elementTypeAcceptingRef } from '@material-ui/utils';
+import { alpha } from '@material-ui/system';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
-import { alpha } from '../styles/colorManipulator';
 import ButtonBase from '../ButtonBase';
 import isMuiElement from '../utils/isMuiElement';
 import useEnhancedEffect from '../utils/useEnhancedEffect';
 import useForkRef from '../utils/useForkRef';
 import ListContext from '../List/ListContext';
 import listItemClasses, { getListItemUtilityClass } from './listItemClasses';
+import { listItemButtonClasses } from '../ListItemButton';
+import ListItemSecondaryAction from '../ListItemSecondaryAction';
 
 export const overridesResolver = (props, styles) => {
   const { styleProps } = props;
 
-  return deepmerge(styles.root || {}, {
-    ...(styleProps.dense && styles.dense),
-    ...(styleProps.alignItems === 'flex-start' && styles.alignItemsFlexStart),
-    ...(styleProps.divider && styles.divider),
-    ...(!styleProps.disableGutters && styles.gutters),
-    ...(styleProps.button && styles.button),
-    ...(styleProps.hasSecondaryAction && styles.secondaryAction),
-  });
+  return [
+    styles.root,
+    styleProps.dense && styles.dense,
+    styleProps.alignItems === 'flex-start' && styles.alignItemsFlexStart,
+    styleProps.divider && styles.divider,
+    !styleProps.disableGutters && styles.gutters,
+    !styleProps.disablePadding && styles.padding,
+    styleProps.button && styles.button,
+    styleProps.hasSecondaryAction && styles.secondaryAction,
+  ];
 };
 
 const useUtilityClasses = (styleProps) => {
@@ -34,6 +38,7 @@ const useUtilityClasses = (styleProps) => {
     dense,
     disabled,
     disableGutters,
+    disablePadding,
     divider,
     hasSecondaryAction,
     selected,
@@ -44,6 +49,7 @@ const useUtilityClasses = (styleProps) => {
       'root',
       dense && 'dense',
       !disableGutters && 'gutters',
+      !disablePadding && 'padding',
       divider && 'divider',
       disabled && 'disabled',
       button && 'button',
@@ -57,15 +63,11 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getListItemUtilityClass, classes);
 };
 
-export const ListItemRoot = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiListItem',
-    slot: 'Root',
-    overridesResolver,
-  },
-)(({ theme, styleProps }) => ({
+export const ListItemRoot = styled('div', {
+  name: 'MuiListItem',
+  slot: 'Root',
+  overridesResolver,
+})(({ theme, styleProps }) => ({
   display: 'flex',
   justifyContent: 'flex-start',
   alignItems: 'center',
@@ -74,8 +76,31 @@ export const ListItemRoot = experimentalStyled(
   width: '100%',
   boxSizing: 'border-box',
   textAlign: 'left',
-  paddingTop: 8,
-  paddingBottom: 8,
+  /* Styles applied to the component element if `disablePadding={false}`. */
+  ...(!styleProps.disablePadding && {
+    paddingTop: 8,
+    paddingBottom: 8,
+    /* Styles applied to the component element if dense and `disablePadding={false}`. */
+    ...(styleProps.dense && {
+      paddingTop: 4,
+      paddingBottom: 4,
+    }),
+    /* Styles applied to the inner `component` element unless `disableGutters={true}` and `disablePadding={true}`. */
+    ...(!styleProps.disableGutters && {
+      paddingLeft: 16,
+      paddingRight: 16,
+    }),
+    ...(!!styleProps.secondaryAction && {
+      // Add some space to avoid collision as `ListItemSecondaryAction`
+      // is absolutely positioned.
+      paddingRight: 48,
+    }),
+  }),
+  ...(!!styleProps.secondaryAction && {
+    [`& > .${listItemButtonClasses.root}`]: {
+      paddingRight: 48,
+    },
+  }),
   [`&.${listItemClasses.focusVisible}`]: {
     backgroundColor: theme.palette.action.focus,
   },
@@ -91,11 +116,6 @@ export const ListItemRoot = experimentalStyled(
   [`&.${listItemClasses.disabled}`]: {
     opacity: theme.palette.action.disabledOpacity,
   },
-  /* Styles applied to the component element if dense. */
-  ...(styleProps.dense && {
-    paddingTop: 4,
-    paddingBottom: 4,
-  }),
   /* Styles applied to the component element if `alignItems="flex-start"`. */
   ...(styleProps.alignItems === 'flex-start' && {
     alignItems: 'flex-start',
@@ -104,11 +124,6 @@ export const ListItemRoot = experimentalStyled(
   ...(styleProps.divider && {
     borderBottom: `1px solid ${theme.palette.divider}`,
     backgroundClip: 'padding-box',
-  }),
-  /* Styles applied to the inner `component` element unless `disableGutters={true}`. */
-  ...(!styleProps.disableGutters && {
-    paddingLeft: 16,
-    paddingRight: 16,
   }),
   /* Styles applied to the inner `component` element if `button={true}`. */
   ...(styleProps.button && {
@@ -142,15 +157,11 @@ export const ListItemRoot = experimentalStyled(
   }),
 }));
 
-const ListItemContainer = experimentalStyled(
-  'li',
-  {},
-  {
-    name: 'MuiListItem',
-    slot: 'Container',
-    overridesResolver,
-  },
-)({
+const ListItemContainer = styled('li', {
+  name: 'MuiListItem',
+  slot: 'Container',
+  overridesResolver: (props, styles) => styles.container,
+})({
   position: 'relative',
 });
 
@@ -173,8 +184,10 @@ const ListItem = React.forwardRef(function ListItem(inProps, ref) {
     dense = false,
     disabled = false,
     disableGutters = false,
+    disablePadding = false,
     divider = false,
     focusVisibleClassName,
+    secondaryAction,
     selected = false,
     ...other
   } = props;
@@ -200,6 +213,8 @@ const ListItem = React.forwardRef(function ListItem(inProps, ref) {
   }, [autoFocus]);
 
   const children = React.Children.toArray(childrenProp);
+
+  // v4 implementation, deprecated in v5, will be removed in v6
   const hasSecondaryAction =
     children.length && isMuiElement(children[children.length - 1], ['ListItemSecondaryAction']);
 
@@ -211,6 +226,7 @@ const ListItem = React.forwardRef(function ListItem(inProps, ref) {
     dense: childContext.dense,
     disabled,
     disableGutters,
+    disablePadding,
     divider,
     hasSecondaryAction,
     selected,
@@ -241,6 +257,7 @@ const ListItem = React.forwardRef(function ListItem(inProps, ref) {
     Component = ButtonBase;
   }
 
+  // v4 implementation, deprecated in v5, will be removed in v6
   if (hasSecondaryAction) {
     // Use div by default.
     Component = !componentProps.component && !componentProp ? 'div' : Component;
@@ -260,13 +277,13 @@ const ListItem = React.forwardRef(function ListItem(inProps, ref) {
           as={ContainerComponent}
           className={clsx(classes.container, ContainerClassName)}
           ref={handleRef}
+          styleProps={styleProps}
           {...ContainerProps}
         >
           <Root
             {...rootProps}
-            as={Component}
-            styleProps={styleProps}
             {...(!isHostComponent(Root) && {
+              as: Component,
               styleProps: { ...styleProps, ...rootProps.styleProps },
             })}
             {...componentProps}
@@ -292,12 +309,13 @@ const ListItem = React.forwardRef(function ListItem(inProps, ref) {
         {...componentProps}
       >
         {children}
+        {secondaryAction && <ListItemSecondaryAction>{secondaryAction}</ListItemSecondaryAction>}
       </Root>
     </ListContext.Provider>
   );
 });
 
-ListItem.propTypes = {
+ListItem.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -311,12 +329,14 @@ ListItem.propTypes = {
    * If `true`, the list item is focused during the first mount.
    * Focus will also be triggered if the value changes from false to true.
    * @default false
+   * @deprecated checkout [ListItemButton](/api/list-item-button/) instead
    */
   autoFocus: PropTypes.bool,
   /**
    * If `true`, the list item is a button (using `ButtonBase`). Props intended
    * for `ButtonBase` can then be applied to `ListItem`.
    * @default false
+   * @deprecated checkout [ListItemButton](/api/list-item-button/) instead
    */
   button: PropTypes.bool,
   /**
@@ -376,11 +396,13 @@ ListItem.propTypes = {
   /**
    * The container component used when a `ListItemSecondaryAction` is the last child.
    * @default 'li'
+   * @deprecated
    */
   ContainerComponent: elementTypeAcceptingRef,
   /**
    * Props applied to the container component if used.
    * @default {}
+   * @deprecated
    */
   ContainerProps: PropTypes.object,
   /**
@@ -392,6 +414,7 @@ ListItem.propTypes = {
   /**
    * If `true`, the component is disabled.
    * @default false
+   * @deprecated checkout [ListItemButton](/api/list-item-button/) instead
    */
   disabled: PropTypes.bool,
   /**
@@ -399,6 +422,11 @@ ListItem.propTypes = {
    * @default false
    */
   disableGutters: PropTypes.bool,
+  /**
+   * If `true`, all padding is removed.
+   * @default false
+   */
+  disablePadding: PropTypes.bool,
   /**
    * If `true`, a 1px light border is added to the bottom of the list item.
    * @default false
@@ -409,8 +437,13 @@ ListItem.propTypes = {
    */
   focusVisibleClassName: PropTypes.string,
   /**
+   * The element to display at the end of ListItem.
+   */
+  secondaryAction: PropTypes.node,
+  /**
    * Use to apply selected styling.
    * @default false
+   * @deprecated checkout [ListItemButton](/api/list-item-button/) instead
    */
   selected: PropTypes.bool,
   /**

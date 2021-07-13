@@ -2,7 +2,6 @@ import * as React from 'react';
 import { expect } from 'chai';
 import { spy, useFakeTimers } from 'sinon';
 import {
-  createMount,
   describeConformanceV5,
   act,
   createClientRender,
@@ -13,8 +12,8 @@ import {
   programmaticFocusTriggersFocusVisible,
 } from 'test/utils';
 import { camelCase } from 'lodash/string';
-import Tooltip, { testReset } from './Tooltip';
-import classes from './tooltipClasses';
+import Tooltip, { tooltipClasses as classes } from '@material-ui/core/Tooltip';
+import { testReset } from './Tooltip';
 
 async function raf() {
   return new Promise((resolve) => {
@@ -45,27 +44,23 @@ describe('<Tooltip />', () => {
     });
   });
 
-  const mount = createMount({ strict: true });
   const render = createClientRender();
 
   describeConformanceV5(
-    <Tooltip title="Hello World">
+    <Tooltip title="Hello World" open>
       <button type="submit">Hello World</button>
     </Tooltip>,
     () => ({
       classes,
       inheritComponent: 'button',
       render,
-      mount,
       muiName: 'MuiTooltip',
       refInstanceof: window.HTMLButtonElement,
-      testVariantProps: { arrow: true },
+      testRootOverrides: { slotName: 'popper', slotClassName: classes.popper },
       testDeepOverrides: { slotName: 'tooltip', slotClassName: classes.tooltip },
       skip: [
         'componentProp',
         'componentsProp',
-        // There are no root
-        'themeStyleOverrides',
         'themeVariants',
         // react-transition-group issue
         'reactTestRenderer',
@@ -473,7 +468,11 @@ describe('<Tooltip />', () => {
         </div>
       );
 
-      const { setProps, getByRole } = render(<AutoFocus />);
+      const { setProps, getByRole } = render(
+        <AutoFocus />,
+        // TODO: https://github.com/reactwg/react-18/discussions/18#discussioncomment-893076
+        { strictEffects: false },
+      );
 
       setProps({ open: true });
       act(() => {
@@ -761,7 +760,9 @@ describe('<Tooltip />', () => {
       expect(getByRole('tooltip')).toBeVisible();
 
       fireEvent.mouseOver(getByRole('tooltip'));
-      clock.tick(111 + 10);
+      act(() => {
+        clock.tick(111 + 10);
+      });
 
       expect(getByRole('tooltip')).not.toBeVisible();
     });
@@ -882,7 +883,9 @@ describe('<Tooltip />', () => {
 
       expect(queryByRole('tooltip')).to.equal(null);
 
-      getByRole('button').focus();
+      act(() => {
+        getByRole('button').focus();
+      });
 
       if (programmaticFocusTriggersFocusVisible()) {
         expect(queryByRole('tooltip')).not.to.equal(null);
@@ -927,7 +930,11 @@ describe('<Tooltip />', () => {
 
       act(() => {
         button.focus();
+      });
+      act(() => {
         button.blur();
+      });
+      act(() => {
         clock.tick(transitionTimeout);
       });
 

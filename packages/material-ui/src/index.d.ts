@@ -13,7 +13,7 @@ export { StyledComponentProps };
 export type StandardProps<
   C,
   ClassKey extends string,
-  Removals extends keyof C = never
+  Removals extends keyof C = never,
 > = DistributiveOmit<C, 'classes' | Removals> &
   StyledComponentProps<ClassKey> & {
     className?: string;
@@ -24,15 +24,15 @@ export type StandardProps<
 /**
  * @private ONLY USE FROM WITHIN mui-org/material-ui
  *
- * Internal helper type for conform (describeConformance) components that are decorated with `withStyles
+ * Internal helper type for conform (describeConformance) components
  * However, we don't declare classes on this type.
- * It is recommended to declare them manually with an interface so that each class can have a separate JSDOC.
+ * It is recommended to declare them manually with an interface so that each class can have a separate JSDoc.
  */
 export type InternalStandardProps<C, Removals extends keyof C = never> = DistributiveOmit<
   C,
   'classes' | Removals
 > &
-  // each component declares it's classes in a separate interface for proper JSDOC
+  // each component declares it's classes in a separate interface for proper JSDoc
   StyledComponentProps<never> & {
     ref?: C extends { ref?: infer RefType } ? RefType : React.Ref<unknown>;
     // TODO: Remove implicit props. Up to each component.
@@ -270,6 +270,9 @@ export * from './ListItem';
 export { default as ListItemAvatar } from './ListItemAvatar';
 export * from './ListItemAvatar';
 
+export { default as ListItemButton } from './ListItemButton';
+export * from './ListItemButton';
+
 export { default as ListItemIcon } from './ListItemIcon';
 export * from './ListItemIcon';
 
@@ -359,6 +362,9 @@ export * from './SpeedDialAction';
 
 export { default as SpeedDialIcon } from './SpeedDialIcon';
 export * from './SpeedDialIcon';
+
+export { default as Stack } from './Stack';
+export * from './Stack';
 
 export { default as Step } from './Step';
 export * from './Step';
@@ -453,9 +459,6 @@ export * from './useMediaQuery';
 export { default as useScrollTrigger } from './useScrollTrigger';
 export * from './useScrollTrigger';
 
-export { default as withWidth } from './withWidth';
-export * from './withWidth';
-
 export { default as Zoom } from './Zoom';
 export * from './Zoom';
 
@@ -466,7 +469,6 @@ export { default as GlobalStyles } from './GlobalStyles';
 export * from './GlobalStyles';
 
 /**
- * @deprecated will be removed in v5.beta, please use StyledEngineProvider instead
+ * @deprecated will be removed in v5.beta, please use StyledEngineProvider from @material-ui/core/styles instead
  */
-export { default as StylesProvider } from './StyledEngineProvider';
-export { default as StyledEngineProvider } from './StyledEngineProvider';
+export { StyledEngineProvider } from './styles';

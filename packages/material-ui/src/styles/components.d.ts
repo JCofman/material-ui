@@ -227,6 +227,7 @@ export interface Components {
   MuiInputBase?: {
     defaultProps?: ComponentsProps['MuiInputBase'];
     styleOverrides?: ComponentsOverrides['MuiInputBase'];
+    variants?: ComponentsVariants['MuiInputBase'];
   };
   MuiInputLabel?: {
     defaultProps?: ComponentsProps['MuiInputLabel'];
@@ -248,6 +249,10 @@ export interface Components {
   MuiListItem?: {
     defaultProps?: ComponentsProps['MuiListItem'];
     styleOverrides?: ComponentsOverrides['MuiListItem'];
+  };
+  MuiListItemButton?: {
+    defaultProps?: ComponentsProps['MuiListItemButton'];
+    styleOverrides?: ComponentsOverrides['MuiListItemButton'];
   };
   MuiListItemAvatar?: {
     defaultProps?: ComponentsProps['MuiListItemAvatar'];
@@ -314,6 +319,10 @@ export interface Components {
   MuiRadio?: {
     defaultProps?: ComponentsProps['MuiRadio'];
     styleOverrides?: ComponentsOverrides['MuiRadio'];
+  };
+  MuiRating?: {
+    defaultProps?: ComponentsProps['MuiRating'];
+    styleOverrides?: ComponentsOverrides['MuiRating'];
   };
   MuiScopedCssBaseline?: {
     defaultProps?: ComponentsProps['MuiScopedCssBaseline'];
@@ -463,8 +472,5 @@ export interface Components {
   };
   MuiUseMediaQuery?: {
     defaultProps?: ComponentsProps['MuiUseMediaQuery'];
-  };
-  MuiWithWidth?: {
-    defaultProps?: ComponentsProps['MuiWithWidth'];
   };
 }

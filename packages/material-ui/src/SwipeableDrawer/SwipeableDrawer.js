@@ -1,13 +1,13 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import { elementTypeAcceptingRef } from '@material-ui/utils';
-import { getThemeProps } from '@material-ui/styles';
+import { useThemeProps } from '@material-ui/system';
 import Drawer, { getAnchor, isHorizontal } from '../Drawer/Drawer';
 import ownerDocument from '../utils/ownerDocument';
 import ownerWindow from '../utils/ownerWindow';
 import useEventCallback from '../utils/useEventCallback';
 import useEnhancedEffect from '../utils/useEnhancedEffect';
-import { duration } from '../styles/transitions';
+import { duration } from '../styles/createTransitions';
 import useTheme from '../styles/useTheme';
 import { getTransitionProps } from '../transitions/utils';
 import NoSsr from '../NoSsr';
@@ -134,8 +134,8 @@ const iOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigato
 const transitionDurationDefault = { enter: duration.enteringScreen, exit: duration.leavingScreen };
 
 const SwipeableDrawer = React.forwardRef(function SwipeableDrawer(inProps, ref) {
+  const props = useThemeProps({ name: 'MuiSwipeableDrawer', props: inProps });
   const theme = useTheme();
-  const props = getThemeProps({ name: 'MuiSwipeableDrawer', props: inProps, theme });
   const {
     anchor = 'left',
     disableBackdropTransition = false,
@@ -445,7 +445,7 @@ const SwipeableDrawer = React.forwardRef(function SwipeableDrawer(inProps, ref) 
     // At least one element clogs the drawer interaction zone.
     if (
       open &&
-      !backdropRef.current.contains(nativeEvent.target) &&
+      (hideBackdrop || !backdropRef.current.contains(nativeEvent.target)) &&
       !paperRef.current.contains(nativeEvent.target)
     ) {
       return;
@@ -552,6 +552,7 @@ const SwipeableDrawer = React.forwardRef(function SwipeableDrawer(inProps, ref) 
           },
           ...ModalPropsProp,
         }}
+        hideBackdrop={hideBackdrop}
         PaperProps={{
           ...PaperProps,
           style: {
@@ -580,7 +581,7 @@ const SwipeableDrawer = React.forwardRef(function SwipeableDrawer(inProps, ref) 
   );
 });
 
-SwipeableDrawer.propTypes = {
+SwipeableDrawer.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |
@@ -616,7 +617,7 @@ SwipeableDrawer.propTypes = {
    */
   hideBackdrop: PropTypes.bool,
   /**
-   * Affects how far the drawer must be opened/closed to change his state.
+   * Affects how far the drawer must be opened/closed to change its state.
    * Specified as percent (0-1) of the width of the drawer
    * @default 0.52
    */

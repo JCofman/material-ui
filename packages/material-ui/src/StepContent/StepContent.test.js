@@ -1,24 +1,18 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import { getClasses, createClientRender, createMount, describeConformance } from 'test/utils';
-import { collapseClasses } from '../Collapse';
-import Stepper from '../Stepper';
-import Step from '../Step';
-import StepContent from './StepContent';
+import { createClientRender, describeConformanceV5 } from 'test/utils';
+import { collapseClasses } from '@material-ui/core/Collapse';
+import Stepper from '@material-ui/core/Stepper';
+import Step from '@material-ui/core/Step';
+import StepContent, { stepContentClasses as classes } from '@material-ui/core/StepContent';
 
 describe('<StepContent />', () => {
-  let classes;
-  const mount = createMount({ strict: true });
   const render = createClientRender();
 
-  before(() => {
-    classes = getClasses(<StepContent />);
-  });
-
-  describeConformance(<StepContent />, () => ({
+  describeConformanceV5(<StepContent />, () => ({
     classes,
     inheritComponent: 'div',
-    mount: (node) => {
+    wrapMount: (mount) => (node) => {
       const wrapper = mount(
         <Stepper orientation="vertical">
           <Step>{node}</Step>
@@ -26,8 +20,17 @@ describe('<StepContent />', () => {
       );
       return wrapper.find(Step).childAt(0).childAt(0).childAt(0);
     },
+    muiName: 'MuiStepContent',
     refInstanceof: window.HTMLDivElement,
-    skip: ['componentProp', 'reactTestRenderer'],
+    render: (node) => {
+      const { container, ...other } = render(
+        <Stepper orientation="vertical">
+          <Step>{node}</Step>
+        </Stepper>,
+      );
+      return { container: container.firstChild.firstChild, ...other };
+    },
+    skip: ['componentProp', 'componentsProp', 'themeVariants', 'reactTestRenderer'],
   }));
 
   it('renders children inside an Collapse component', () => {

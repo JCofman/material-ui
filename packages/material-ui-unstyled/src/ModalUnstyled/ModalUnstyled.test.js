@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import { createMount, createClientRender, describeConformance } from 'test/utils';
+import { createClientRender, describeConformanceV5 } from 'test/utils';
 import ModalUnstyled, {
   modalUnstyledClasses as classes,
 } from '@material-ui/unstyled/ModalUnstyled';
 
 describe('<ModalUnstyled />', () => {
-  const mount = createMount();
   const render = createClientRender();
   let savedBodyStyle;
 
@@ -18,17 +17,22 @@ describe('<ModalUnstyled />', () => {
     document.body.setAttribute('style', savedBodyStyle);
   });
 
-  describeConformance(
+  describeConformanceV5(
     <ModalUnstyled open>
       <div />
     </ModalUnstyled>,
     () => ({
       classes,
       inheritComponent: 'div',
-      mount,
+      render,
       refInstanceof: window.HTMLDivElement,
-      testComponentPropWith: 'div',
-      skip: ['reactTestRenderer'],
+      skip: [
+        'rootClass', // portal, can't determin the root
+        'themeDefaultProps', // unstyled
+        'themeStyleOverrides', // unstyled
+        'themeVariants', // unstyled
+        'reactTestRenderer', // portal https://github.com/facebook/react/issues/11565
+      ],
     }),
   );
 
@@ -37,10 +41,10 @@ describe('<ModalUnstyled />', () => {
     let theme = null;
 
     const Root = React.forwardRef(
-      ({ styleProps: stylePropsProp, theme: themeProp, ...rest }, ref) => {
+      ({ styleProps: stylePropsProp, theme: themeProp, ...other }, ref) => {
         styleProps = stylePropsProp;
         theme = themeProp;
-        return <span ref={ref} {...rest} />;
+        return <span ref={ref} {...other} />;
       },
     );
 

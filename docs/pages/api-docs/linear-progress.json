@@ -4,10 +4,11 @@
     "color": {
       "type": {
         "name": "union",
-        "description": "'primary'<br>&#124;&nbsp;'secondary'<br>&#124;&nbsp;string"
+        "description": "'inherit'<br>&#124;&nbsp;'primary'<br>&#124;&nbsp;'secondary'<br>&#124;&nbsp;string"
       },
       "default": "'primary'"
     },
+    "sx": { "type": { "name": "object" } },
     "value": { "type": { "name": "number" } },
     "valueBuffer": { "type": { "name": "number" } },
     "variant": {
@@ -48,6 +49,6 @@
   "filename": "/packages/material-ui/src/LinearProgress/LinearProgress.js",
   "inheritance": null,
   "demos": "<ul><li><a href=\"/components/progress/\">Progress</a></li></ul>",
-  "styledComponent": false,
+  "styledComponent": true,
   "cssComponent": false
 }

@@ -1,11 +1,15 @@
 import { SxProps } from '@material-ui/system';
+import { OverridableStringUnion } from '@material-ui/types';
 import { Theme } from '..';
 import { ExtendButtonBase, ExtendButtonBaseTypeMap } from '../ButtonBase';
 import { OverrideProps } from '../OverridableComponent';
+import { ToggleButtonClasses } from './toggleButtonClasses';
+
+export interface ToggleButtonPropsSizeOverrides {}
 
 export type ToggleButtonTypeMap<
   P = {},
-  D extends React.ElementType = 'button'
+  D extends React.ElementType = 'button',
 > = ExtendButtonBaseTypeMap<{
   props: P & {
     /**
@@ -15,22 +19,12 @@ export type ToggleButtonTypeMap<
     /**
      * Override or extend the styles applied to the component.
      */
-    classes?: {
-      /** Styles applied to the root element. */
-      root?: string;
-      /** Pseudo-class applied to the root element if `disabled={true}`. */
-      disabled?: string;
-      /** Pseudo-class applied to the root element if `selected={true}`. */
-      selected?: string;
-      /** Styles applied to the `label` wrapper element. */
-      label?: string;
-      /** Styles applied to the root element if `size="small"`. */
-      sizeSmall?: string;
-      /** Styles applied to the root element if `size="medium"`. */
-      sizeMedium?: string;
-      /** Styles applied to the root element if `size="large"`. */
-      sizeLarge?: string;
-    };
+    classes?: Partial<ToggleButtonClasses>;
+    /**
+     * The color of the button when it is in an active state.
+     * @default 'standard'
+     */
+    color?: 'standard' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
     /**
      * If `true`, the component is disabled.
      * @default false
@@ -42,6 +36,11 @@ export type ToggleButtonTypeMap<
      */
     disableFocusRipple?: boolean;
     /**
+     * If `true`, the button will take up the full width of its container.
+     * @default false
+     */
+    fullWidth?: boolean;
+    /**
      * If `true`, the button is rendered in an active state.
      */
     selected?: boolean;
@@ -50,7 +49,7 @@ export type ToggleButtonTypeMap<
      * The prop defaults to the value inherited from the parent ToggleButtonGroup component.
      * @default 'medium'
      */
-    size?: 'small' | 'medium' | 'large';
+    size?: OverridableStringUnion<'small' | 'medium' | 'large', ToggleButtonPropsSizeOverrides>;
     /**
      * The system prop that allows defining system overrides as well as additional CSS styles.
      */
@@ -79,9 +78,7 @@ declare const ToggleButton: ExtendButtonBase<ToggleButtonTypeMap>;
 
 export type ToggleButtonProps<
   D extends React.ElementType = ToggleButtonTypeMap['defaultComponent'],
-  P = {}
+  P = {},
 > = OverrideProps<ToggleButtonTypeMap<P, D>, D>;
-
-export type ToggleButtonClassKey = keyof NonNullable<ToggleButtonTypeMap['props']['classes']>;
 
 export default ToggleButton;

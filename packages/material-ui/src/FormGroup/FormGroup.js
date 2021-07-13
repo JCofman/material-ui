@@ -1,19 +1,10 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
 import { getFormGroupUtilityClass } from './formGroupClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...(styleProps.row && styles.row),
-  });
-};
 
 const useUtilityClasses = (styleProps) => {
   const { classes, row } = styleProps;
@@ -25,15 +16,15 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getFormGroupUtilityClass, classes);
 };
 
-const FormGroupRoot = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiFormGroup',
-    slot: 'Root',
-    overridesResolver,
+const FormGroupRoot = styled('div', {
+  name: 'MuiFormGroup',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [styles.root, styleProps.row && styles.row];
   },
-)(({ styleProps }) => ({
+})(({ styleProps }) => ({
   /* Styles applied to the root element. */
   display: 'flex',
   flexDirection: 'column',
@@ -69,7 +60,7 @@ const FormGroup = React.forwardRef(function FormGroup(inProps, ref) {
   );
 });
 
-FormGroup.propTypes = {
+FormGroup.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |

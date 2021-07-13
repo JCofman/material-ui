@@ -1,31 +1,14 @@
 import * as React from 'react';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { getClasses, describeConformance, fireEvent, screen } from 'test/utils';
-import PickersDay from '@material-ui/lab/PickersDay';
-import {
-  adapterToUse,
-  createPickerMount,
-  createPickerRender,
-} from '../internal/pickers/test-utils';
+import { describeConformanceV5, fireEvent, screen } from 'test/utils';
+import PickersDay, { pickersDayClasses as classes } from '@material-ui/lab/PickersDay';
+import { adapterToUse, wrapPickerMount, createPickerRender } from '../internal/pickers/test-utils';
 
 describe('<PickersDay />', () => {
-  const mount = createPickerMount();
   const render = createPickerRender();
-  let classes: Record<string, string>;
 
-  before(() => {
-    classes = getClasses(
-      <PickersDay
-        day={adapterToUse.date()}
-        outsideCurrentMonth={false}
-        selected
-        onDaySelect={() => {}}
-      />,
-    );
-  });
-
-  describeConformance(
+  describeConformanceV5(
     <PickersDay
       day={adapterToUse.date()}
       outsideCurrentMonth={false}
@@ -35,10 +18,13 @@ describe('<PickersDay />', () => {
     () => ({
       classes,
       inheritComponent: 'button',
-      mount,
+      render,
+      wrapMount: wrapPickerMount,
+      muiName: 'MuiPickersDay',
       refInstanceof: window.HTMLButtonElement,
+      testVariantProps: { variant: 'disableMargin' },
       // cannot test reactTestRenderer because of required context
-      skip: ['componentProp', 'reactTestRenderer'],
+      skip: ['componentProp', 'componentsProp', 'reactTestRenderer'],
     }),
   );
 

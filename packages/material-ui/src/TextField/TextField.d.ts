@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { SxProps } from '@material-ui/system';
 import { OverridableStringUnion } from '@material-ui/types';
 import { InternalStandardProps as StandardProps } from '..';
 import { FormControlProps } from '../FormControl';
@@ -9,6 +10,8 @@ import { FilledInputProps } from '../FilledInput';
 import { OutlinedInputProps } from '../OutlinedInput';
 import { InputLabelProps } from '../InputLabel';
 import { SelectProps } from '../Select';
+import { Theme } from '../styles';
+import { TextFieldClasses } from './textFieldClasses';
 
 export interface TextFieldPropsColorOverrides {}
 export interface TextFieldPropsSizeOverrides {}
@@ -37,16 +40,13 @@ export interface BaseTextFieldProps
   /**
    * Override or extend the styles applied to the component.
    */
-  classes?: {
-    /** Styles applied to the root element. */
-    root?: string;
-  };
+  classes?: Partial<TextFieldClasses>;
   /**
    * The color of the component. It supports those theme colors that make sense for this component.
    * @default 'primary'
    */
   color?: OverridableStringUnion<
-    Record<'primary' | 'secondary', true>,
+    'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning',
     TextFieldPropsColorOverrides
   >;
   /**
@@ -142,7 +142,11 @@ export interface BaseTextFieldProps
   /**
    * The size of the component.
    */
-  size?: OverridableStringUnion<Record<'small' | 'medium', true>, TextFieldPropsSizeOverrides>;
+  size?: OverridableStringUnion<'small' | 'medium', TextFieldPropsSizeOverrides>;
+  /**
+   * The system prop that allows defining system overrides as well as additional CSS styles.
+   */
+  sx?: SxProps<Theme>;
   /**
    * Type of the `input` element. It should be [a valid HTML5 input type](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types).
    */
@@ -220,8 +224,6 @@ export interface OutlinedTextFieldProps extends BaseTextFieldProps {
 }
 
 export type TextFieldProps = StandardTextFieldProps | FilledTextFieldProps | OutlinedTextFieldProps;
-
-export type TextFieldClassKey = keyof NonNullable<TextFieldProps['classes']>;
 
 /**
  * The `TextField` is a convenience wrapper for the most common cases (80%).

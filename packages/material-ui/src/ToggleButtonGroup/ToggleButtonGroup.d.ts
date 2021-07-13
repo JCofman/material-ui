@@ -1,7 +1,11 @@
 import * as React from 'react';
 import { SxProps } from '@material-ui/system';
+import { OverridableStringUnion } from '@material-ui/types';
 import { InternalStandardProps as StandardProps } from '..';
 import { Theme } from '../styles';
+import { ToggleButtonGroupClasses } from './toggleButtonGroupClasses';
+
+export interface ToggleButtonGroupPropsSizeOverrides {}
 
 export interface ToggleButtonGroupProps
   extends StandardProps<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'children'> {
@@ -12,23 +16,22 @@ export interface ToggleButtonGroupProps
   /**
    * Override or extend the styles applied to the component.
    */
-  classes?: {
-    /** Styles applied to the root element. */
-    root?: string;
-    /** Styles applied to the root element if `orientation="vertical"`. */
-    vertical?: string;
-    /** Styles applied to the children. */
-    grouped?: string;
-    /** Styles applied to the children if `orientation="horizontal"`. */
-    groupedHorizontal?: string;
-    /** Styles applied to the children if `orientation="vertical"`. */
-    groupedVertical?: string;
-  };
+  classes?: Partial<ToggleButtonGroupClasses>;
+  /**
+   * The color of a button when it is selected.
+   * @default 'standard'
+   */
+  color?: 'standard' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
   /**
    * If `true`, only allow one of the child ToggleButton values to be selected.
    * @default false
    */
   exclusive?: boolean;
+  /**
+   * If `true`, the button group will take up the full width of its container.
+   * @default false
+   */
+  fullWidth?: boolean;
   /**
    * Callback fired when the value changes.
    *
@@ -47,7 +50,7 @@ export interface ToggleButtonGroupProps
    * The size of the component.
    * @default 'medium'
    */
-  size?: 'small' | 'medium' | 'large';
+  size?: OverridableStringUnion<'small' | 'medium' | 'large', ToggleButtonGroupPropsSizeOverrides>;
   /**
    * The system prop that allows defining system overrides as well as additional CSS styles.
    */
@@ -60,8 +63,6 @@ export interface ToggleButtonGroupProps
    */
   value?: any;
 }
-
-export type ToggleButtonGroupClassKey = keyof NonNullable<ToggleButtonGroupProps['classes']>;
 
 /**
  *

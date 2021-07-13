@@ -104,6 +104,8 @@ module.exports = {
     'import/named': 'off',
     // Missing yarn workspace support
     'import/no-extraneous-dependencies': 'off',
+    // The code is already coupled to webpack. Prefer explicit coupling.
+    'import/no-webpack-loader-syntax': 'off',
 
     // doesn't work?
     'jsx-a11y/label-has-associated-control': [
@@ -164,9 +166,6 @@ module.exports = {
         '*.test.ts',
         '*.test.tsx',
       ],
-      env: {
-        mocha: true,
-      },
       extends: ['plugin:mocha/recommended'],
       rules: {
         // does not work with wildcard imports. Mistakes will throw at runtime anyway
@@ -359,6 +358,24 @@ module.exports = {
             ],
           },
         ],
+
+        'material-ui/mui-name-matches-component-name': [
+          'error',
+          {
+            customHooks: [
+              'useDatePickerDefaultizedProps',
+              'useDateTimePickerDefaultizedProps',
+              'useTimePickerDefaultizedProps',
+            ],
+          },
+        ],
+      },
+    },
+    {
+      files: ['test/bundling/scripts/**/*.js'],
+      rules: {
+        // ES modules need extensions
+        'import/extensions': ['error', 'ignorePackages'],
       },
     },
   ],

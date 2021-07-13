@@ -2,7 +2,7 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import { createPopper } from '@popperjs/core';
 import { chainPropTypes, refType, HTMLElementType } from '@material-ui/utils';
-import { useTheme } from '@material-ui/styles';
+import { useTheme } from '../styles';
 import Portal from '../Portal';
 import ownerDocument from '../utils/ownerDocument';
 import setRef from '../utils/setRef';
@@ -240,7 +240,7 @@ const Popper = React.forwardRef(function Popper(props, ref) {
   );
 });
 
-Popper.propTypes = {
+Popper.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |

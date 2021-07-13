@@ -1,23 +1,19 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import { createMount, describeConformanceV5, act, createClientRender, fireEvent } from 'test/utils';
+import { describeConformanceV5, act, createClientRender, fireEvent } from 'test/utils';
 import Switch, { switchClasses as classes } from '@material-ui/core/Switch';
 import FormControl from '@material-ui/core/FormControl';
 
 describe('<Switch />', () => {
   const render = createClientRender();
-  const mount = createMount();
 
   describeConformanceV5(<Switch />, () => ({
+    classes,
     render,
-    mount,
     muiName: 'MuiSwitch',
-    testVariantProps: { variant: 'foo' },
     testDeepOverrides: { slotName: 'track', slotClassName: classes.track },
-    // TODO Switch violates root component
-    only: ['refForwarding'],
     refInstanceof: window.HTMLSpanElement,
-    skip: ['componentProp', 'componentsProp'],
+    skip: ['componentProp', 'componentsProp', 'propsSpread', 'themeDefaultProps', 'themeVariants'],
   }));
 
   describe('styleSheet', () => {
@@ -65,6 +61,20 @@ describe('<Switch />', () => {
     const { getByRole } = render(<Switch readOnly />);
 
     expect(getByRole('checkbox')).to.have.property('readOnly', true);
+  });
+
+  specify('renders a custom icon when provided', () => {
+    const { getByTestId } = render(<Switch icon={<span data-testid="icon" />} />);
+
+    expect(getByTestId('icon')).toBeVisible();
+  });
+
+  specify('renders a custom checked icon when provided', () => {
+    const { getByTestId } = render(
+      <Switch defaultChecked checkedIcon={<span data-testid="icon" />} />,
+    );
+
+    expect(getByTestId('icon')).toBeVisible();
   });
 
   specify('the Checked state changes after change events', () => {

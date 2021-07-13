@@ -1,12 +1,10 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import { createMount, createClientRender, describeConformanceV5 } from 'test/utils';
-import TableRow from './TableRow';
-import classes from './tableRowClasses';
+import { createClientRender, describeConformanceV5 } from 'test/utils';
+import TableRow, { tableRowClasses as classes } from '@material-ui/core/TableRow';
 
 describe('<TableRow />', () => {
   const render = createClientRender();
-  const mount = createMount();
 
   function renderInTable(node) {
     return render(
@@ -20,14 +18,14 @@ describe('<TableRow />', () => {
     classes,
     inheritComponent: 'tr',
     render: (node) => {
-      const { container, ...rest } = render(
+      const { container, ...other } = render(
         <table>
           <tbody>{node}</tbody>
         </table>,
       );
-      return { container: container.firstChild.firstChild, ...rest };
+      return { container: container.firstChild.firstChild, ...other };
     },
-    mount: (node) => {
+    wrapMount: (mount) => (node) => {
       const wrapper = mount(
         <table>
           <tbody>{node}</tbody>

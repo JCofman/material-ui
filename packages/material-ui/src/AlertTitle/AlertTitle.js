@@ -2,12 +2,10 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
 import Typography from '../Typography';
 import { getAlertTitleUtilityClass } from './alertTitleClasses';
-
-const overridesResolver = (props, styles) => styles.root || {};
 
 const useUtilityClasses = (styleProps) => {
   const { classes } = styleProps;
@@ -19,15 +17,11 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getAlertTitleUtilityClass, classes);
 };
 
-const AlertTitleRoot = experimentalStyled(
-  Typography,
-  {},
-  {
-    name: 'MuiAlertTitle',
-    slot: 'Root',
-    overridesResolver,
-  },
-)(({ theme }) => {
+const AlertTitleRoot = styled(Typography, {
+  name: 'MuiAlertTitle',
+  slot: 'Root',
+  overridesResolver: (props, styles) => styles.root,
+})(({ theme }) => {
   /* Styles applied to the root element. */
   return {
     fontWeight: theme.typography.fontWeightMedium,
@@ -43,9 +37,7 @@ const AlertTitle = React.forwardRef(function AlertTitle(inProps, ref) {
 
   const { className, ...other } = props;
 
-  // TODO: convert to simple assignment after the type error in defaultPropsHandler.js:60:6 is fixed
-  const styleProps = { ...props };
-
+  const styleProps = props;
   const classes = useUtilityClasses(styleProps);
 
   return (
@@ -60,7 +52,7 @@ const AlertTitle = React.forwardRef(function AlertTitle(inProps, ref) {
   );
 });
 
-AlertTitle.propTypes = {
+AlertTitle.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |

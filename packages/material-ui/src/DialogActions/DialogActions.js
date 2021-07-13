@@ -1,19 +1,10 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { deepmerge } from '@material-ui/utils';
 import { unstable_composeClasses as composeClasses } from '@material-ui/unstyled';
-import experimentalStyled from '../styles/experimentalStyled';
+import styled from '../styles/styled';
 import useThemeProps from '../styles/useThemeProps';
 import { getDialogActionsUtilityClass } from './dialogActionsClasses';
-
-const overridesResolver = (props, styles) => {
-  const { styleProps } = props;
-
-  return deepmerge(styles.root || {}, {
-    ...(!styleProps.disableSpacing && styles.spacing),
-  });
-};
 
 const useUtilityClasses = (styleProps) => {
   const { classes, disableSpacing } = styleProps;
@@ -25,15 +16,15 @@ const useUtilityClasses = (styleProps) => {
   return composeClasses(slots, getDialogActionsUtilityClass, classes);
 };
 
-const DialogActionsRoot = experimentalStyled(
-  'div',
-  {},
-  {
-    name: 'MuiDialogActions',
-    slot: 'Root',
-    overridesResolver,
+const DialogActionsRoot = styled('div', {
+  name: 'MuiDialogActions',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const { styleProps } = props;
+
+    return [styles.root, !styleProps.disableSpacing && styles.spacing];
   },
-)(({ styleProps }) => ({
+})(({ styleProps }) => ({
   /* Styles applied to the root element. */
   display: 'flex',
   alignItems: 'center',
@@ -68,7 +59,7 @@ const DialogActions = React.forwardRef(function DialogActions(inProps, ref) {
   );
 });
 
-DialogActions.propTypes = {
+DialogActions.propTypes /* remove-proptypes */ = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
   // |     To update them edit the d.ts file and run "yarn proptypes"     |

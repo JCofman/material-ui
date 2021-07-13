@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { expect } from 'chai';
-import { spy } from 'sinon';
+import { spy, useFakeTimers } from 'sinon';
 import { isWeekend } from 'date-fns';
 import TextField from '@material-ui/core/TextField';
 import { fireEvent, screen, act } from 'test/utils';
@@ -26,7 +26,33 @@ function TestKeyboardDatePicker(
 }
 
 describe('<DesktopDatePicker /> keyboard interactions', () => {
+  let clock: ReturnType<typeof useFakeTimers>;
+  beforeEach(() => {
+    clock = useFakeTimers();
+  });
+  afterEach(() => {
+    clock.restore();
+  });
+
   const render = createPickerRender();
+
+  it('closes on Escape press', () => {
+    const handleClose = spy();
+    render(
+      <DesktopDatePicker
+        onChange={() => {}}
+        renderInput={(params) => <TextField {...params} />}
+        value={null}
+        open
+        onClose={handleClose}
+      />,
+    );
+
+    // eslint-disable-next-line material-ui/disallow-active-element-as-key-event-target -- don't care
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+
+    expect(handleClose.callCount).to.equal(1);
+  });
 
   context('input', () => {
     it('allows to change selected date from the input according to `format`', () => {
@@ -68,7 +94,9 @@ describe('<DesktopDatePicker /> keyboard interactions', () => {
         <TestKeyboardDatePicker
           mask="____"
           inputFormat="yyyy"
-          renderInput={(params) => <TextField {...params} id="test" />}
+          renderInput={(params) => (
+            <TextField {...params} id="test" helperText={params?.inputProps?.placeholder} />
+          )}
         />,
       );
 

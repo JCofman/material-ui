@@ -1,5 +1,4 @@
 import * as React from 'react';
-import clsx from 'clsx';
 import Grow from '@material-ui/core/Grow';
 import Paper, { PaperProps as MuiPaperProps } from '@material-ui/core/Paper';
 import Popper, { PopperProps as MuiPopperProps } from '@material-ui/core/Popper';
@@ -7,9 +6,8 @@ import TrapFocus, {
   TrapFocusProps as MuiTrapFocusProps,
 } from '@material-ui/core/Unstable_TrapFocus';
 import { useForkRef, useEventCallback, ownerDocument } from '@material-ui/core/utils';
-import { MuiStyles, StyleRules, WithStyles, withStyles } from '@material-ui/core/styles';
+import { styled } from '@material-ui/core/styles';
 import { TransitionProps as MuiTransitionProps } from '@material-ui/core/transitions';
-import { useGlobalKeyDown, keycode } from './hooks/useKeyDown';
 
 export interface ExportedPickerPopperProps {
   /**
@@ -19,7 +17,7 @@ export interface ExportedPickerPopperProps {
   /**
    * Custom component for popper [Transition](https://material-ui.com/components/transitions/#transitioncomponent-prop).
    */
-  TransitionComponent?: React.ComponentType<MuiTransitionProps>;
+  TransitionComponent?: React.JSXElementConstructor<MuiTransitionProps>;
 }
 
 export interface PickerPopperProps extends ExportedPickerPopperProps, MuiPaperProps {
@@ -31,22 +29,21 @@ export interface PickerPopperProps extends ExportedPickerPopperProps, MuiPaperPr
   onClose: () => void;
 }
 
-export type PickersPopperClassKey = 'root' | 'paper' | 'topTransition';
-
-export const styles: MuiStyles<PickersPopperClassKey> = (
-  theme,
-): StyleRules<PickersPopperClassKey> => ({
-  root: {
+const PickersPopperRoot = styled(Popper, { skipSx: true })<{ styleProps: PickerPopperProps }>(
+  ({ theme }) => ({
     zIndex: theme.zIndex.modal,
-  },
-  paper: {
-    transformOrigin: 'top center',
-    outline: 0,
-  },
-  topTransition: {
+  }),
+);
+
+const PickersPopperPaper = styled(Paper, { skipSx: true })<{
+  styleProps: PickerPopperProps & Pick<MuiPopperProps, 'placement'>;
+}>(({ styleProps }) => ({
+  transformOrigin: 'top center',
+  outline: 0,
+  ...(styleProps.placement === 'top' && {
     transformOrigin: 'bottom center',
-  },
-});
+  }),
+}));
 
 function clickedRootScrollbar(event: MouseEvent, doc: Document) {
   return (
@@ -58,7 +55,6 @@ function clickedRootScrollbar(event: MouseEvent, doc: Document) {
 /**
  * Based on @material-ui/core/ClickAwayListener without the customization.
  * We can probably strip away even more since children won't be portaled.
- *
  * @param onClickAway
  * @param onClick
  * @param onTouchStart
@@ -78,15 +74,19 @@ function useClickAwayListener(
       return undefined;
     }
 
-    function handleClickCapture() {
+    // Ensure that this hook is not "activated" synchronously.
+    // https://github.com/facebook/react/issues/20074
+    function armClickAwayListener() {
       activatedRef.current = true;
     }
 
-    document.addEventListener('click', handleClickCapture, { capture: true, once: true });
+    document.addEventListener('mousedown', armClickAwayListener, true);
+    document.addEventListener('touchstart', armClickAwayListener, true);
 
     return () => {
+      document.removeEventListener('mousedown', armClickAwayListener, true);
+      document.removeEventListener('touchstart', armClickAwayListener, true);
       activatedRef.current = false;
-      document.removeEventListener('click', handleClickCapture, { capture: true });
     };
   }, [active]);
 
@@ -185,11 +185,10 @@ function useClickAwayListener(
   return [nodeRef, handleSynthetic, handleSynthetic];
 }
 
-const PickersPopper: React.FC<PickerPopperProps & WithStyles<typeof styles>> = (props) => {
+const PickersPopper = (props: PickerPopperProps) => {
   const {
     anchorEl,
     children,
-    classes,
     containerRef = null,
     onClose,
     open,
@@ -199,9 +198,20 @@ const PickersPopper: React.FC<PickerPopperProps & WithStyles<typeof styles>> = (
     TrapFocusProps,
   } = props;
 
-  useGlobalKeyDown(open, {
-    [keycode.Esc]: onClose,
-  });
+  React.useEffect(() => {
+    function handleKeyDown(nativeEvent: KeyboardEvent) {
+      // IE11, Edge (prior to using Bink?) use 'Esc'
+      if (nativeEvent.key === 'Escape' || nativeEvent.key === 'Esc') {
+        onClose();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
 
   const lastFocusedElementRef = React.useRef<Element | null>(null);
   React.useEffect(() => {
@@ -220,17 +230,19 @@ const PickersPopper: React.FC<PickerPopperProps & WithStyles<typeof styles>> = (
   }, [open, role]);
 
   const [clickAwayRef, onPaperClick, onPaperTouchStart] = useClickAwayListener(open, onClose);
-  const paperRef = React.useRef<HTMLElement>(null);
+  const paperRef = React.useRef<HTMLDivElement>(null);
   const handleRef = useForkRef(paperRef, containerRef);
-  const handlePaperRef = useForkRef(handleRef, clickAwayRef);
+  const handlePaperRef = useForkRef(handleRef, clickAwayRef as React.Ref<HTMLDivElement>);
+
+  const styleProps = props;
 
   return (
-    <Popper
+    <PickersPopperRoot
       transition
       role={role}
       open={open}
       anchorEl={anchorEl}
-      className={clsx(classes.root, PopperProps?.className)}
+      styleProps={styleProps}
       {...PopperProps}
     >
       {({ TransitionProps, placement }) => (
@@ -239,27 +251,24 @@ const PickersPopper: React.FC<PickerPopperProps & WithStyles<typeof styles>> = (
           disableAutoFocus
           disableEnforceFocus={role === 'tooltip'}
           isEnabled={() => true}
-          getDoc={() => paperRef.current?.ownerDocument ?? document}
           {...TrapFocusProps}
         >
           <TransitionComponent {...TransitionProps}>
-            <Paper
+            <PickersPopperPaper
               tabIndex={-1}
               elevation={8}
               ref={handlePaperRef}
-              className={clsx(classes.paper, {
-                [classes.topTransition]: placement === 'top',
-              })}
               onClick={onPaperClick}
               onTouchStart={onPaperTouchStart}
+              styleProps={{ ...styleProps, placement }}
             >
               {children}
-            </Paper>
+            </PickersPopperPaper>
           </TransitionComponent>
         </TrapFocus>
       )}
-    </Popper>
+    </PickersPopperRoot>
   );
 };
 
-export default withStyles(styles, { name: 'MuiPickersPopper' })(PickersPopper);
+export default PickersPopper;
