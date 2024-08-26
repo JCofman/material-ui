@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
 /* eslint-disable no-await-in-loop */
-const fse = require('fs-extra');
 const path = require('path');
+const http = require('http');
+const fse = require('fs-extra');
 const playwright = require('playwright');
 const handler = require('serve-handler');
-const http = require('http');
 
 const PORT = 1122;
 
@@ -155,6 +155,18 @@ async function run() {
         path: './noop/index.js',
       },
       {
+        name: 'Grid (html)',
+        path: './grid-simple/index.js',
+      },
+      {
+        name: 'Grid System',
+        path: './grid-system/index.js',
+      },
+      {
+        name: 'Grid Material UI',
+        path: './grid-material-ui/index.js',
+      },
+      {
         name: 'Table',
         path: './table-cell/index.js',
       },
@@ -170,7 +182,7 @@ async function run() {
       },
       // Test that @mui/styled-engine doesn't add an signifiant overhead
       {
-        name: 'Styled Material-UI',
+        name: 'Styled MUI',
         path: './styled-material-ui/index.js',
       },
       {
@@ -192,7 +204,7 @@ async function run() {
         path: './box-baseline/index.js',
       },
       {
-        name: 'Box Material-UI',
+        name: 'Box MUI',
         path: './box-material-ui/index.js',
       },
       {
@@ -203,7 +215,7 @@ async function run() {
         name: 'Box Chakra-UI',
         path: './box-chakra-ui/index.js',
       },
-      // Test the system perf difference with alternatives
+      // Test MUI System perf difference with alternatives
       {
         name: 'styled-components Box + @mui/system',
         path: './styled-components-box-material-ui-system/index.js',

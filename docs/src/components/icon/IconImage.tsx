@@ -1,90 +1,116 @@
 import * as React from 'react';
 import { useTheme, styled, Theme } from '@mui/material/styles';
+import Box from '@mui/material/Box';
 import { SxProps } from '@mui/system';
 
 export type IconImageProps = {
   name:
     | 'product-core'
     | 'product-advanced'
+    | 'product-toolpad'
     | 'product-templates'
     | 'product-designkits'
-    | 'block-green'
-    | 'block-blue'
-    | 'block-gold'
-    | 'yes'
-    | 'no'
-    | 'time'
-    | 'give-feedback'
-    | 'join-community'
-    | 'support-us'
-    | 'spotify'
-    | 'amazon'
-    | 'nasa'
-    | 'netflix'
-    | 'unity'
-    | 'shutterstock'
-    | 'southwest'
-    | 'boeing'
-    | 'siemens'
-    | 'deloitte'
-    | 'volvo';
+    | 'pricing/x-plan-pro'
+    | 'pricing/x-plan-premium'
+    | 'pricing/x-plan-community'
+    | 'pricing/yes'
+    | 'pricing/no'
+    | 'pricing/time'
+    | 'companies/spotify'
+    | 'companies/amazon'
+    | 'companies/nasa'
+    | 'companies/netflix'
+    | 'companies/unity'
+    | 'companies/shutterstock'
+    | 'companies/southwest'
+    | 'companies/boeing'
+    | 'companies/siemens'
+    | 'companies/deloitte'
+    | 'companies/apple'
+    | 'companies/twitter'
+    | 'companies/salesforce'
+    | 'companies/verizon'
+    | 'companies/atandt'
+    | 'companies/patreon'
+    | 'companies/ebay'
+    | 'companies/samsung'
+    | 'companies/volvo'
+    | string;
+  height?: number;
+  mode?: '' | 'light' | 'dark';
   sx?: SxProps<Theme>;
-} & JSX.IntrinsicElements['img'];
+  width?: number;
+} & Omit<React.JSX.IntrinsicElements['img'], 'ref'>;
 
 const Img = styled('img')({ display: 'inline-block', verticalAlign: 'bottom' });
 
-export default function IconImage({ name, ...props }: IconImageProps) {
+let neverHydrated = true;
+
+export default function IconImage(props: IconImageProps) {
+  const { height: heightProp, name, width: widthProp, mode: modeProp, ...other } = props;
   const theme = useTheme();
-  let width = '';
-  let height = '';
-  let category = '';
-  let mode = `-${theme.palette.mode}`;
+  const [firstRender, setFirstRender] = React.useState(true);
+  React.useEffect(() => {
+    setFirstRender(false);
+    neverHydrated = false;
+  }, []);
+  let defaultWidth;
+  let defaultHeight;
+  const mode = modeProp ?? (theme.palette.mode as any);
+
   if (name.startsWith('product-')) {
-    width = '36';
-    height = '36';
+    defaultWidth = 36;
+    defaultHeight = 36;
+  } else if (name.startsWith('pricing/x-plan-')) {
+    defaultWidth = 13;
+    defaultHeight = 15;
+  } else if (['pricing/yes', 'pricing/no', 'pricing/time'].includes(name)) {
+    defaultWidth = 18;
+    defaultHeight = 18;
   }
-  if (name.startsWith('block-')) {
-    category = 'pricing/';
-    mode = '';
-    width = '13';
-    height = '15';
+
+  const width = widthProp ?? defaultWidth;
+  const height = heightProp ?? defaultHeight;
+
+  // First time render with a theme depend image
+  if (firstRender && neverHydrated && mode !== '') {
+    if (other.loading === 'eager') {
+      return (
+        <React.Fragment>
+          <Img
+            className="only-light-mode-v2"
+            src={`/static/branding/${name}-light.svg`}
+            alt=""
+            width={width}
+            height={height}
+            {...other}
+            loading="lazy"
+          />
+          <Img
+            className="only-dark-mode-v2"
+            src={`/static/branding/${name}-dark.svg`}
+            alt=""
+            width={width}
+            height={height}
+            {...other}
+            loading="lazy"
+          />
+        </React.Fragment>
+      );
+    }
+
+    // Prevent hydration mismatch between the light and dark mode image source.
+    return <Box component="span" sx={{ width, height, display: 'inline-block' }} />;
   }
-  if (['yes', 'no', 'time'].indexOf(name) !== -1) {
-    category = 'pricing/';
-    width = '18';
-    height = '18';
-  }
-  if (['give-feedback', 'join-community', 'support-us'].indexOf(name) !== -1) {
-    category = 'about/';
-    mode = '';
-    width = '28';
-    height = '28';
-  }
-  if (
-    [
-      'spotify',
-      'amazon',
-      'nasa',
-      'netflix',
-      'unity',
-      'shutterstock',
-      'southwest',
-      'boeing',
-      'siemens',
-      'deloitte',
-      'volvo',
-    ].indexOf(name) !== -1
-  ) {
-    category = 'companies/';
-  }
+
   return (
     <Img
-      src={`/static/branding/${category}${name}${mode}.svg`}
+      src={`/static/branding/${name}${mode ? `-${mode}` : ''}.svg`}
       alt=""
       loading="lazy"
       width={width}
       height={height}
-      {...props}
+      {...other}
     />
   );
 }

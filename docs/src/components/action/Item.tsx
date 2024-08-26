@@ -3,17 +3,25 @@ import { useTheme } from '@mui/material/styles';
 import Box, { BoxProps } from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
-export function Group({ desktopColumns = 1, ...props }: { desktopColumns?: number } & BoxProps) {
+export function Group({
+  desktopColumns = 1,
+  rowLayout = false,
+  ...props
+}: { desktopColumns?: number; rowLayout?: boolean } & BoxProps) {
   const theme = useTheme();
   return (
     <Box
       {...props}
       sx={{
-        maxWidth: { md: 500 },
         overflow: 'auto',
-        display: 'grid',
+        maxWidth: rowLayout ? 'none' : { md: 500 },
+        display: { xs: 'grid', sm: rowLayout ? 'flex' : 'grid' },
+        justifyContent: { xs: 'start', sm: rowLayout ? 'center' : null },
         gap: 1,
         gridTemplateColumns: `repeat(${desktopColumns}, 1fr)`,
+        '@media (prefers-reduced-motion: no-preference)': {
+          scrollBehavior: 'smooth',
+        },
         '& > *': {
           minWidth: {
             xs: desktopColumns === 1 ? 300 : 225,
@@ -35,7 +43,7 @@ export function Group({ desktopColumns = 1, ...props }: { desktopColumns?: numbe
           },
           '& > *:last-child': {
             position: 'relative',
-            '&:after': {
+            '&::after': {
               // to create scroll spacing on the right edge
               content: '""',
               position: 'absolute',
@@ -64,14 +72,16 @@ export function Group({ desktopColumns = 1, ...props }: { desktopColumns?: numbe
 }
 
 export default function Item({
+  description,
   icon,
   title,
-  description,
+  smallerIconDistance = false,
   ...props
 }: {
+  description?: string;
   icon: React.ReactNode;
   title: string;
-  description?: string;
+  smallerIconDistance?: boolean;
 } & BoxProps) {
   return (
     <Box
@@ -79,34 +89,31 @@ export default function Item({
       component="span"
       sx={{
         p: 2,
+        pr: smallerIconDistance ? 3 : 2,
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: { xs: 'column', sm: 'row' },
+        alignItems: { xs: 'start', sm: 'center' },
+        gap: { xs: 2, sm: '14px' },
         ...props.sx,
       }}
     >
-      <Box sx={{ mr: 2, lineHeight: 0 }}>{icon}</Box>
-      <div>
-        <Typography
-          component="span"
-          color="text.primary"
-          variant="body2"
-          fontWeight="bold"
-          sx={{ display: 'block' }}
-        >
+      <Box component="span" sx={{ lineHeight: 0 }}>
+        {icon}
+      </Box>
+      <Box sx={{ flexWrap: 'wrap' }}>
+        <Typography color="text.primary" variant="body2" fontWeight="semiBold">
           {title}
         </Typography>
         {description && (
           <Typography
             component="span"
-            color="text.secondary"
             variant="body2"
-            fontWeight="regular"
-            sx={{ mt: 0.5 }}
+            sx={{ color: 'text.secondary', fontWeight: 'regular', mt: 0.5 }}
           >
             {description}
           </Typography>
         )}
-      </div>
+      </Box>
     </Box>
   );
 }
